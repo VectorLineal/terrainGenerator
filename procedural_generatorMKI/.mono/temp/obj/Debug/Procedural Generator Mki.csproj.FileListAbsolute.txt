@@ -1,0 +1,8 @@
+D:\Godot_v3.2.3-stable_mono_win64\projects\procedural_generatorMKI\.mono\temp\obj\Debug\Procedural Generator Mki.csprojAssemblyReference.cache
+D:\Godot_v3.2.3-stable_mono_win64\projects\procedural_generatorMKI\.mono\temp\obj\Debug\Procedural Generator Mki.AssemblyInfoInputs.cache
+D:\Godot_v3.2.3-stable_mono_win64\projects\procedural_generatorMKI\.mono\temp\obj\Debug\Procedural Generator Mki.AssemblyInfo.cs
+D:\Godot_v3.2.3-stable_mono_win64\projects\procedural_generatorMKI\.mono\temp\obj\Debug\Procedural Generator Mki.csproj.CoreCompileInputs.cache
+D:\Godot_v3.2.3-stable_mono_win64\projects\procedural_generatorMKI\.mono\temp\bin\Debug\Procedural Generator Mki.dll
+D:\Godot_v3.2.3-stable_mono_win64\projects\procedural_generatorMKI\.mono\temp\bin\Debug\Procedural Generator Mki.pdb
+D:\Godot_v3.2.3-stable_mono_win64\projects\procedural_generatorMKI\.mono\temp\obj\Debug\Procedural Generator Mki.dll
+D:\Godot_v3.2.3-stable_mono_win64\projects\procedural_generatorMKI\.mono\temp\obj\Debug\Procedural Generator Mki.pdb

@@ -6,6 +6,8 @@ uniform int seed = 4791;
 uniform float amplitude = 0.5;
 uniform float frequency = 3.0;
 uniform int iterations = 6;
+uniform sampler2D map;
+uniform vec4 color;
 
 float hash(vec2 p) {
   return fract(sin(dot(p * 17.17, vec2(14.91, 67.31))) * float(seed));
@@ -75,9 +77,10 @@ float fbm(vec2 x) {
 }
 
 void vertex() {
+	float height = texture(map, VERTEX.xz / 2.0 + 0.5).x;
 	//float height = fbm(VERTEX.xz * 4.0) * height_scale;
-	float height = diamondSquare(VERTEX.xz) * height_scale;
-	VERTEX.y += height * 0.1;
+	//float height = diamondSquare(VERTEX.xz) * height_scale;
+	VERTEX.y += height * 0.5;
   	COLOR.xyz = vec3(height);
 	vec2 e = vec2(0.01, 0.0);
 	vec3 normal = normalize(vec3(fbm(VERTEX.xz - e) - fbm(VERTEX.xz + e), 2.0 * e.x, fbm(VERTEX.xz - e.yx) - fbm(VERTEX.xz + e.yx)));
