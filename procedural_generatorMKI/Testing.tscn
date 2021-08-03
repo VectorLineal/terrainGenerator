@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=2]
+[gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://terraformer.shader" type="Shader" id=1]
 [ext_resource path="res://PlaneTerrain.gd" type="Script" id=2]
@@ -7,20 +7,10 @@
 subdivide_width = 512
 subdivide_depth = 512
 
-[sub_resource type="OpenSimplexNoise" id=5]
-
-[sub_resource type="NoiseTexture" id=6]
-noise = SubResource( 5 )
-
 [sub_resource type="ShaderMaterial" id=4]
 shader = ExtResource( 1 )
-shader_param/height_scale = 0.6
-shader_param/seed = 4669
-shader_param/amplitude = 0.5
-shader_param/frequency = 3.0
-shader_param/iterations = 6
-shader_param/color = null
-shader_param/map = SubResource( 6 )
+shader_param/height_scale = 0.5
+shader_param/color = Plane( 0.28, 0.4, 0.28, 0 )
 
 [node name="Spatial" type="Spatial"]
 
