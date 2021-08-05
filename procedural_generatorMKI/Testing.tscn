@@ -9,7 +9,10 @@ subdivide_depth = 512
 
 [sub_resource type="ShaderMaterial" id=2]
 shader = ExtResource( 1 )
+shader_param/minTemp = 0.0
 shader_param/height_scale = 0.5
+shader_param/seed = 43758.5
+shader_param/sea_level = 0.0
 shader_param/color = Plane( 0.28, 0.4, 0.28, 0 )
 
 [node name="Spatial" type="Spatial"]
