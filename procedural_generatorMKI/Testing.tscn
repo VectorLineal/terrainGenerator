@@ -1,7 +1,8 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=14 format=2]
 
 [ext_resource path="res://terraformer.shader" type="Shader" id=1]
 [ext_resource path="res://PlaneTerrain.gd" type="Script" id=2]
+[ext_resource path="res://sea.shader" type="Shader" id=3]
 
 [sub_resource type="PlaneMesh" id=1]
 subdivide_width = 512
@@ -15,6 +16,46 @@ shader_param/seed = 43758.5
 shader_param/sea_level = 0.0
 shader_param/color = Plane( 0.28, 0.4, 0.28, 0 )
 
+[sub_resource type="PlaneMesh" id=3]
+subdivide_width = 512
+subdivide_depth = 512
+
+[sub_resource type="OpenSimplexNoise" id=5]
+lacunarity = 4.0
+
+[sub_resource type="NoiseTexture" id=6]
+seamless = true
+noise = SubResource( 5 )
+
+[sub_resource type="OpenSimplexNoise" id=7]
+
+[sub_resource type="NoiseTexture" id=8]
+seamless = true
+noise = SubResource( 7 )
+
+[sub_resource type="OpenSimplexNoise" id=9]
+
+[sub_resource type="NoiseTexture" id=10]
+seamless = true
+as_normalmap = true
+bump_strength = 4.0
+noise = SubResource( 9 )
+
+[sub_resource type="ShaderMaterial" id=4]
+shader = ExtResource( 3 )
+shader_param/speed = 0.011
+shader_param/color = Color( 0.529412, 0.807843, 0.980392, 1 )
+shader_param/edge_color = Color( 0.866667, 0.866667, 1, 1 )
+shader_param/edge_scale = 0.25
+shader_param/near = 0.1
+shader_param/far = 100.0
+shader_param/wave_strengh = Vector2( 0.015, 0.007 )
+shader_param/wave_frequency = Vector2( 15, 15 )
+shader_param/time_factor = Vector2( 1, 2 )
+shader_param/noise1 = SubResource( 6 )
+shader_param/noise2 = SubResource( 8 )
+shader_param/normalmap = SubResource( 10 )
+
 [node name="Spatial" type="Spatial"]
 
 [node name="MeshInstance" type="MeshInstance" parent="."]
@@ -26,4 +67,8 @@ script = ExtResource( 2 )
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.940875, 0 )
 
 [node name="Camera" type="Camera" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.535535, 1.46235 )
+transform = Transform( 1, 0, 0, 0, -1.62921e-07, 1, 0, -1, -1.62921e-07, 0, 2, 0 )
+
+[node name="MeshInstance2" type="MeshInstance" parent="."]
+mesh = SubResource( 3 )
+material/0 = SubResource( 4 )

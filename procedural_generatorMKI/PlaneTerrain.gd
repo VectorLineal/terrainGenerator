@@ -6,6 +6,7 @@ var rng = RandomNumberGenerator.new()
 var seaLevel = 0
 var maxTemperature = 30
 var minTemperature = 0
+var wetPoints = 4
 
 func remap(iMin, iMax, oMin, oMax, v):
 	var t = inverse_lerp(iMin, iMax, v)
@@ -17,7 +18,7 @@ func _ready():
 	#print(self.get_surface_material(0).get_shader_param("map"))
 	var noise = OpenSimplexNoise.new()
 	#reemplazar por semilla suministrada por el usuario
-	noise.seed = 10000#randi()
+	noise.seed = 3493353#randi()
 	rng.seed = noise.seed
 	noise.octaves = 4
 	noise.period = 64.0
@@ -37,13 +38,29 @@ func _ready():
 	image.create(512, 512, false, Image.FORMAT_RGBAF)
 	image.lock()
 	heightImage.lock()
+	
+	#se generan puntos iniciales d ehumedad a partir de los cuales se distribuirá la humedad por todo el terreno
+	var wetConcentrations = []
+	for i in self.wetPoints:
+		wetConcentrations.append([rng.randi_range(0, image.get_width() -1), rng.randi_range(0, image.get_height() -1), rng.randf(), rng.randi_range(0, image.get_width() -1)])
+		print("x: ", wetConcentrations[i][0], " y: ", wetConcentrations[i][1], " wet: ", wetConcentrations[i][2], " range: ", wetConcentrations[i][3])
+	
 	for y in image.get_height():
 		for x in image.get_width():
+			var height = heightImage.get_pixel(x, y).r
+			#red representa temperatura
+			var red = 1 - remap(minTemperature, maxTemperature, self.seaLevel, 1, height * (maxTemperature - minTemperature))
+			#blue representa humedad
+			var blue = 0
+			for i in self.wetPoints:
+				var terDif = ((pow(wetConcentrations[i][3], 2) -  pow(x - wetConcentrations[i][0], 2) - pow(y - wetConcentrations[i][1], 2)) / pow(wetConcentrations[i][3], 2)) - 0.1 * (height - heightImage.get_pixel(wetConcentrations[i][0], wetConcentrations[i][1]).r)
+				if terDif < 0:
+					terDif = 0
+				blue += terDif * wetConcentrations[i][2]
+			blue = blue / self.wetPoints
 			#image.set_pixel(x, y, Color(self.rng.randf(), self.rng.randf(), self.rng.randf(), self.rng.randf()))
-			if heightImage.get_pixel(x, y).r >= 2.0 / 3.0 or heightImage.get_pixel(x, y).r <= 8.0 / 9.0:
-				image.set_pixel(x, y, Color(1 - remap(minTemperature, maxTemperature, 0, 1, heightImage.get_pixel(x, y).r * (maxTemperature - minTemperature)), 0, 0, 1))
-			else:
-				image.set_pixel(x, y, Color(1 - self.rng.randf_range(2.0 / 3.0,8.0 / 9.0), 0, 0, 1))
+			image.set_pixel(x, y, Color(red, 0, blue, 1))
+
 	
 	image.unlock()
 	heightImage.unlock()
