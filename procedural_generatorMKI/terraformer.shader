@@ -6,6 +6,7 @@ uniform float height_scale = 0.5;
 uniform float seed = 43758.5453;
 uniform float sea_level = 0.0;
 uniform sampler2D map;
+uniform sampler2D voronoi_map;
 uniform sampler2D biome_map;
 uniform vec4 color;
 
@@ -32,7 +33,7 @@ float remap(float iMin, float iMax, float oMin, float oMax, float v){
 
 void vertex() {
 	float tempRanges = 9.0;
-	float height = texture(map, VERTEX.xz / 2.0 + 0.5).x;
+	float height = (texture(map, VERTEX.xz / 2.0 + 0.5).x + texture(voronoi_map, VERTEX.xz / 2.0 + 0.5).x) / 2.0;
 	//if(height >= 8.0 / tempRanges){
 	//	texture(biome_map, VERTEX.xz / 2.0 + 0.5).x = rand_range(VERTEX.xz, remap(0, 30.0, 0, 1.0, minTemp), remap(0, 30.0, 0, 1.0, 2.0 * minTemp / 30.0));
 	//}

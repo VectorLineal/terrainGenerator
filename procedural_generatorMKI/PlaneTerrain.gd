@@ -2,6 +2,7 @@ extends MeshInstance
 
 var heightMap
 var biomeMap
+var voronoiMap
 var rng = RandomNumberGenerator.new()
 var seaLevel = 0
 var maxTemperature = 30
@@ -11,6 +12,39 @@ var wetPoints = 4
 func remap(iMin, iMax, oMin, oMax, v):
 	var t = inverse_lerp(iMin, iMax, v)
 	return lerp(oMin, oMax, t)
+	
+func generate_voronoi_diagram(imgSize : Vector2, num_cells: int, max_height: float, random_gen: RandomNumberGenerator):
+	
+	var img = Image.new()
+	img.create(imgSize.x, imgSize.y, false, Image.FORMAT_RGBH)
+
+	var points = []
+	var rand_heights = []
+	
+	for i in range(num_cells):
+		points.push_back(Vector2(int(random_gen.randf() * img.get_size().x), int(random_gen.randf() * img.get_size().y)))
+		
+		#var colorPossibilities = [ Color.blue, Color.red, Color.green, Color.purple, Color.yellow, Color.orange]
+		rand_heights.push_back(random_gen.randf_range(max_height / 100, 1))
+		
+	for y in range(img.get_size().y):
+		for x in range(img.get_size().x):
+			var dmin = img.get_size().length()
+			var dmin2 = img.get_size().length()
+			var j = -1
+			for i in range(num_cells):
+				var d = (points[i] - Vector2(x, y)).length()
+				if d < dmin:
+					dmin2 = dmin
+					dmin = d
+					j = i
+				elif d < dmin2 and d >= dmin:
+					dmin2 = d
+			var color_scale = remap(0, dmin2, max_height, 0, dmin) * rand_heights[j]
+			img.lock()
+			img.set_pixel(x, y, Color(color_scale, color_scale, color_scale, 1))
+			img.unlock()
+	return img
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -31,6 +65,11 @@ func _ready():
 	self.get_surface_material(0).set_shader_param("map", heightMap)
 	self.get_surface_material(0).set_shader_param("height_scale", 0.7)
 	
+	#se genera mapa de Voronoi
+	self.voronoiMap = ImageTexture.new()
+	self.voronoiMap.create_from_image(generate_voronoi_diagram(Vector2(512, 512), 15, 1, rng))
+	self.get_surface_material(0).set_shader_param("voronoi_map", voronoiMap)
+	
 	#Paso de ajuste de terreno y simulación usando algún métodos físicos (erosión física y termal).
 	#Se crea mapa de temperatura (R), humedad (G), vientos (BA)
 	self.biomeMap = ImageTexture.new()
@@ -42,8 +81,8 @@ func _ready():
 	#se generan puntos iniciales d ehumedad a partir de los cuales se distribuirá la humedad por todo el terreno
 	var wetConcentrations = []
 	for i in self.wetPoints:
-		wetConcentrations.append([rng.randi_range(0, image.get_width() -1), rng.randi_range(0, image.get_height() -1), rng.randf(), rng.randi_range(0, image.get_width() -1)])
-		print("x: ", wetConcentrations[i][0], " y: ", wetConcentrations[i][1], " wet: ", wetConcentrations[i][2], " range: ", wetConcentrations[i][3])
+		wetConcentrations.append([rng.randi_range(0, image.get_width() -1), rng.randi_range(0, image.get_height() -1), rng.randf(), rng.randi_range(image.get_width() / 50, image.get_width() -1)])
+		print("x: ", wetConcentrations[i][0], " y: ", wetConcentrations[i][1], " wet: ", wetConcentrations[i][2], " range: ", wetConcentrations[i][3], ", image lenght: ", image.get_size().length(), ", square length: ", image.get_width()* image.get_width() + image.get_height() * image.get_height())
 	
 	for y in image.get_height():
 		for x in image.get_width():
