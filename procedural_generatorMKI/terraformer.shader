@@ -37,9 +37,61 @@ void vertex() {
 	//if(height >= 8.0 / tempRanges){
 	//	texture(biome_map, VERTEX.xz / 2.0 + 0.5).x = rand_range(VERTEX.xz, remap(0, 30.0, 0, 1.0, minTemp), remap(0, 30.0, 0, 1.0, 2.0 * minTemp / 30.0));
 	//}
+	//h: altura, t: tempratura, w: humedad
+	//pradera
+	vec3 greenland = vec3(0.3, 0.3, 0.3);
+	//llanuras
+	vec3 plains = vec3(0, 0.6, 0.35);
+	//selvatico
+	vec3 jungle = vec3(0, 0.5, 0.65);
+	//desertico
+	vec3 desert = vec3(0, 0.85, 0.1);
+	//nevado
+	vec3 snow = vec3(0.85, 0.2, 0.4);
+	//paramo
+	vec3 paramount = vec3(0.65, 0.4, 0.55);
+	
+	float temperature = texture(biome_map, VERTEX.xz / 2.0 + 0.5).x;
+	float wet = texture(biome_map, VERTEX.xz / 2.0 + 0.5).z;
+	vec3 biomeColor;
+	if(height <= greenland.x){ // puede ser llanura, selva o desierto o yermo
+		if(wet <= desert.z){
+			biomeColor = vec3(0.777, 0.65, 0.392) //desierto
+		}else if(wet > desert.z && wet <= plains.z){
+			biomeColor = vec3(0.5, 0.25, 0) //yermo
+		}else if(wet > plains.z && wet <= jungle.z){
+			biomeColor = vec3(0.592, 0.93, 0.13) //llanuras
+		}else if(wet > jungle.z){
+			biomeColor = vec3(0.157, 0.45, 0.2) //jungla
+		}
+	}else if(height > greenland.x && height <= paramount.x){ //puede ser pradera, yermo, desierto, selva
+		if(wet <= desert.z){
+			biomeColor = vec3(0.777, 0.65, 0.392) //desierto
+		}else if(wet > desert.z && wet <= greenland.z){
+			biomeColor = vec3(0.5, 0.25, 0) //yermo
+		}else if(wet > greenland.z && wet <= jungle.z){
+			biomeColor = vec3(0.572, 0.75, 0.333) //pradera
+		}else if(wet > jungle.z){
+			biomeColor = vec3(0.157, 0.45, 0.2) //jungla
+		}
+	}else if(height > paramount.x && height <= snow.x){ //puede ser paramo, pradera o yermo
+		if(wet >= paramount.z){
+			biomeColor = vec3(0.572, 0.75, 0.333) //pradera
+		}else if(wet < paramount.z && wet >= greenland.z){
+			biomeColor = vec3(0.435, 0.502, 0.345) //paramo
+		}else{
+			biomeColor = vec3(0.5, 0.25, 0) //yermo
+		}
+	}else if(height > snow.x){ //tiene que ser un nevado
+		biomeColor = vec3(1, 0.98, 0.98) //nieve
+	}else{ // en caso que no se coinsida con un bioma anteriormente listado, se tomará como bioma yermo
+		biomeColor = vec3(0.5, 0.25, 0) //yermo
+	}
+	
 	height *= height_scale;
 	VERTEX.y += height * 0.5;
-  	COLOR.xyz = vec3(height) * texture(biome_map, VERTEX.xz / 2.0 + 0.5).xyz;
+  	//COLOR.xyz = vec3(height) * texture(biome_map, VERTEX.xz / 2.0 + 0.5).xyz;
+	COLOR.xyz = vec3(height) * biomeColor;
 	vec2 e = vec2(0.01, 0.0);
 	vec3 normal = normalize(vec3(texture(map, VERTEX.xz / 2.0 - e).x - texture(map, VERTEX.xz / 2.0 + e).x, 2.0 * e.x, texture(map, VERTEX.xz / 2.0 - e.yx).x - texture(map, VERTEX.xz / 2.0 + e.yx).x));
 	NORMAL = normal;

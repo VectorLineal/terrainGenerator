@@ -1,5 +1,6 @@
 extends MeshInstance
 
+#variables sobre generación de terreno base
 var heightMap
 var biomeMap
 var voronoiMap
@@ -8,6 +9,12 @@ var seaLevel = 0
 var maxTemperature = 30
 var minTemperature = 0
 var wetPoints = 4
+
+#variables sobre algoritmos físicos
+var talus_angle = 0.015
+var iterations = 10
+#modified Von Neumann neighbourhood
+var neighbourhood = [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1)]
 
 func remap(iMin, iMax, oMin, oMax, v):
 	var t = inverse_lerp(iMin, iMax, v)
@@ -25,7 +32,7 @@ func generate_voronoi_diagram(imgSize : Vector2, num_cells: int, max_height: flo
 		points.push_back(Vector2(int(random_gen.randf() * img.get_size().x), int(random_gen.randf() * img.get_size().y)))
 		
 		#var colorPossibilities = [ Color.blue, Color.red, Color.green, Color.purple, Color.yellow, Color.orange]
-		rand_heights.push_back(random_gen.randf_range(max_height / 100, 1))
+		rand_heights.push_back(random_gen.randf())
 		
 	for y in range(img.get_size().y):
 		for x in range(img.get_size().x):
@@ -54,7 +61,7 @@ func _ready():
 	#reemplazar por semilla suministrada por el usuario
 	noise.seed = 3493353#randi()
 	rng.seed = noise.seed
-	noise.octaves = 4
+	noise.octaves = 8
 	noise.period = 64.0
 	noise.persistence = 0.5
 	noise.lacunarity = 2.0
@@ -100,7 +107,37 @@ func _ready():
 			#image.set_pixel(x, y, Color(self.rng.randf(), self.rng.randf(), self.rng.randf(), self.rng.randf()))
 			image.set_pixel(x, y, Color(red, 0, blue, 1))
 
-	
+	#se aplica erosión termal optimizada de Olsen
+	for iter in self.iterations:
+		for y in image.get_height():
+			for x in image.get_width():
+				var slope_total = 0
+				var slope_max = 0
+				var height = heightImage.get_pixel(x, y).r
+				#casilla objetivo donde se mandará el material erosionado
+				var lowest_slope = 1
+				var lowest_index = -1
+				#se recorre vendiaro de Neumann
+				for i in self.neighbourhood.size():
+					var next_x = x + self.neighbourhood[i].x
+					var next_y = y + self.neighbourhood[i].y
+					#El vecindario debe quedar dentro de los constraints del mapa de alturas
+					if next_x >= 0 and next_x < heightImage.get_width() and next_y >= 0 and next_y < heightImage.get_height():
+						var height_i = heightImage.get_pixel(next_x, next_y).r
+						var slope_i = height - height_i
+						if slope_i > self.talus_angle:
+							slope_total += slope_i
+							if slope_i < lowest_slope:
+								lowest_slope = slope_i
+								lowest_index = i
+							if slope_i > slope_max:
+								slope_max = slope_i
+				#Se mueve el material respectivo y se modifica el mapa de altura
+				if lowest_index >= 0:
+					var new_height = height - slope_max / 2
+					heightImage.set_pixel(x, y, Color(new_height, new_height, new_height, 1))
+					new_height = lowest_slope + slope_max / 2
+					heightImage.set_pixel(x + self.neighbourhood[lowest_index].x, y + self.neighbourhood[lowest_index].y, Color(new_height, new_height, new_height, 1))
 	image.unlock()
 	heightImage.unlock()
 	
