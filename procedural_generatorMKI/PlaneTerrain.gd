@@ -8,11 +8,11 @@ var rng = RandomNumberGenerator.new()
 var seaLevel = 0
 var maxTemperature = 30
 var minTemperature = 0
-var wetPoints = 4
+var wetPoints = 5
 
 #variables sobre algoritmos físicos
 var talus_angle = 0.015
-var iterations = 10
+var iterations = 50
 #modified Von Neumann neighbourhood
 var neighbourhood = [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1)]
 
@@ -78,7 +78,6 @@ func _ready():
 	self.get_surface_material(0).set_shader_param("voronoi_map", voronoiMap)
 	
 	#Paso de ajuste de terreno y simulación usando algún métodos físicos (erosión física y termal).
-	#Se crea mapa de temperatura (R), humedad (G), vientos (BA)
 	self.biomeMap = ImageTexture.new()
 	var image = Image.new()
 	image.create(512, 512, false, Image.FORMAT_RGBAF)
@@ -89,23 +88,7 @@ func _ready():
 	var wetConcentrations = []
 	for i in self.wetPoints:
 		wetConcentrations.append([rng.randi_range(0, image.get_width() -1), rng.randi_range(0, image.get_height() -1), rng.randf(), rng.randi_range(image.get_width() / 50, image.get_width() -1)])
-		print("x: ", wetConcentrations[i][0], " y: ", wetConcentrations[i][1], " wet: ", wetConcentrations[i][2], " range: ", wetConcentrations[i][3], ", image lenght: ", image.get_size().length(), ", square length: ", image.get_width()* image.get_width() + image.get_height() * image.get_height())
-	
-	for y in image.get_height():
-		for x in image.get_width():
-			var height = heightImage.get_pixel(x, y).r
-			#red representa temperatura
-			var red = 1 - remap(minTemperature, maxTemperature, self.seaLevel, 1, height * (maxTemperature - minTemperature))
-			#blue representa humedad
-			var blue = 0
-			for i in self.wetPoints:
-				var terDif = ((pow(wetConcentrations[i][3], 2) -  pow(x - wetConcentrations[i][0], 2) - pow(y - wetConcentrations[i][1], 2)) / pow(wetConcentrations[i][3], 2)) - 0.1 * (height - heightImage.get_pixel(wetConcentrations[i][0], wetConcentrations[i][1]).r)
-				if terDif < 0:
-					terDif = 0
-				blue += terDif * wetConcentrations[i][2]
-			blue = blue / self.wetPoints
-			#image.set_pixel(x, y, Color(self.rng.randf(), self.rng.randf(), self.rng.randf(), self.rng.randf()))
-			image.set_pixel(x, y, Color(red, 0, blue, 1))
+		print("x: ", wetConcentrations[i][0], " y: ", wetConcentrations[i][1], " wet: ", wetConcentrations[i][2], " range: ", wetConcentrations[i][3])
 
 	#se aplica erosión termal optimizada de Olsen
 	for iter in self.iterations:
@@ -138,6 +121,29 @@ func _ready():
 					heightImage.set_pixel(x, y, Color(new_height, new_height, new_height, 1))
 					new_height = lowest_slope + slope_max / 2
 					heightImage.set_pixel(x + self.neighbourhood[lowest_index].x, y + self.neighbourhood[lowest_index].y, Color(new_height, new_height, new_height, 1))
+	
+	#Se crea mapa de temperatura (R), humedad (G), vientos (BA)
+	var max_blue = 0
+	for y in image.get_height():
+		for x in image.get_width():
+			var height = heightImage.get_pixel(x, y).r
+			#red representa temperatura
+			var red = 1 - remap(minTemperature, maxTemperature, self.seaLevel, 1, height * (maxTemperature - minTemperature))
+			#blue representa humedad
+			var blue = 0
+			for i in self.wetPoints:
+				var terDif = ((pow(wetConcentrations[i][3], 2) -  pow(x - wetConcentrations[i][0], 2) - pow(y - wetConcentrations[i][1], 2)) / pow(wetConcentrations[i][3], 2)) - 0.1 * (height - heightImage.get_pixel(wetConcentrations[i][0], wetConcentrations[i][1]).r)
+				if terDif < 0:
+					terDif = 0
+				blue += terDif * wetConcentrations[i][2]
+			if blue > max_blue:
+				max_blue = blue
+			if max_blue > 0:
+				blue = blue / max_blue
+			#image.set_pixel(x, y, Color(self.rng.randf(), self.rng.randf(), self.rng.randf(), self.rng.randf()))
+			#print("map x: ", x, " y: ", y, " wet: ", blue)
+			image.set_pixel(x, y, Color(red, 0, blue, 1))
+	
 	image.unlock()
 	heightImage.unlock()
 	
