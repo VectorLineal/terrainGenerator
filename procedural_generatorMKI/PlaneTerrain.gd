@@ -1,9 +1,10 @@
 extends MeshInstance
 
+#var Voronoi = load("Voronio.gd")
+
 #variables sobre generación de terreno base
 var heightMap
 var biomeMap
-var voronoiMap
 var rng = RandomNumberGenerator.new()
 var seaLevel = 0
 var maxTemperature = 30
@@ -11,47 +12,10 @@ var minTemperature = 0
 var wetPoints = 5
 
 #variables sobre algoritmos físicos
-var talus_angle = 0.015
-var iterations = 50
+var talus_angle = 0.03125
+var iterations = 100
 #modified Von Neumann neighbourhood
 var neighbourhood = [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1)]
-
-func remap(iMin, iMax, oMin, oMax, v):
-	var t = inverse_lerp(iMin, iMax, v)
-	return lerp(oMin, oMax, t)
-	
-func generate_voronoi_diagram(imgSize : Vector2, num_cells: int, max_height: float, random_gen: RandomNumberGenerator):
-	
-	var img = Image.new()
-	img.create(imgSize.x, imgSize.y, false, Image.FORMAT_RGBH)
-
-	var points = []
-	var rand_heights = []
-	
-	for i in range(num_cells):
-		points.push_back(Vector2(int(random_gen.randf() * img.get_size().x), int(random_gen.randf() * img.get_size().y)))
-		
-		#var colorPossibilities = [ Color.blue, Color.red, Color.green, Color.purple, Color.yellow, Color.orange]
-		rand_heights.push_back(random_gen.randf())
-		
-	for y in range(img.get_size().y):
-		for x in range(img.get_size().x):
-			var dmin = img.get_size().length()
-			var dmin2 = img.get_size().length()
-			var j = -1
-			for i in range(num_cells):
-				var d = (points[i] - Vector2(x, y)).length()
-				if d < dmin:
-					dmin2 = dmin
-					dmin = d
-					j = i
-				elif d < dmin2 and d >= dmin:
-					dmin2 = d
-			var color_scale = remap(0, dmin2, max_height, 0, dmin) * rand_heights[j]
-			img.lock()
-			img.set_pixel(x, y, Color(color_scale, color_scale, color_scale, 1))
-			img.unlock()
-	return img
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -67,15 +31,12 @@ func _ready():
 	noise.lacunarity = 2.0
 	self.heightMap = ImageTexture.new()
 	var heightImage = noise.get_image(512, 512)
-	self.heightMap.create_from_image(heightImage)
-	print("biome ", heightMap.get_data().get_height(), heightMap.get_data().get_width())
-	self.get_surface_material(0).set_shader_param("map", heightMap)
-	self.get_surface_material(0).set_shader_param("height_scale", 0.7)
+	Voronoi.apply_voronoi_diagram(heightImage, 16, 1, rng)
 	
 	#se genera mapa de Voronoi
-	self.voronoiMap = ImageTexture.new()
-	self.voronoiMap.create_from_image(generate_voronoi_diagram(Vector2(512, 512), 15, 1, rng))
-	self.get_surface_material(0).set_shader_param("voronoi_map", voronoiMap)
+	#self.voronoiMap = ImageTexture.new()
+	#self.voronoiMap.create_from_image(Voronoi.generate_voronoi_diagram(Vector2(512, 512), 15, 1, rng))
+	#self.get_surface_material(0).set_shader_param("voronoi_map", voronoiMap)
 	
 	#Paso de ajuste de terreno y simulación usando algún métodos físicos (erosión física y termal).
 	self.biomeMap = ImageTexture.new()
@@ -84,21 +45,16 @@ func _ready():
 	image.lock()
 	heightImage.lock()
 	
-	#se generan puntos iniciales d ehumedad a partir de los cuales se distribuirá la humedad por todo el terreno
-	var wetConcentrations = []
-	for i in self.wetPoints:
-		wetConcentrations.append([rng.randi_range(0, image.get_width() -1), rng.randi_range(0, image.get_height() -1), rng.randf(), rng.randi_range(image.get_width() / 50, image.get_width() -1)])
-		print("x: ", wetConcentrations[i][0], " y: ", wetConcentrations[i][1], " wet: ", wetConcentrations[i][2], " range: ", wetConcentrations[i][3])
-
 	#se aplica erosión termal optimizada de Olsen
 	for iter in self.iterations:
-		for y in image.get_height():
-			for x in image.get_width():
+		for y in heightImage.get_height():
+			for x in heightImage.get_width():
+# warning-ignore:unused_variable
 				var slope_total = 0
 				var slope_max = 0
 				var height = heightImage.get_pixel(x, y).r
 				#casilla objetivo donde se mandará el material erosionado
-				var lowest_slope = 1
+				var lowest_height = 1
 				var lowest_index = -1
 				#se recorre vendiaro de Neumann
 				for i in self.neighbourhood.size():
@@ -110,17 +66,22 @@ func _ready():
 						var slope_i = height - height_i
 						if slope_i > self.talus_angle:
 							slope_total += slope_i
-							if slope_i < lowest_slope:
-								lowest_slope = slope_i
-								lowest_index = i
 							if slope_i > slope_max:
+								lowest_height = height_i
 								slope_max = slope_i
+								lowest_index = i
 				#Se mueve el material respectivo y se modifica el mapa de altura
 				if lowest_index >= 0:
 					var new_height = height - slope_max / 2
 					heightImage.set_pixel(x, y, Color(new_height, new_height, new_height, 1))
-					new_height = lowest_slope + slope_max / 2
+					new_height = lowest_height + slope_max / 2
 					heightImage.set_pixel(x + self.neighbourhood[lowest_index].x, y + self.neighbourhood[lowest_index].y, Color(new_height, new_height, new_height, 1))
+	
+	#se generan puntos iniciales d ehumedad a partir de los cuales se distribuirá la humedad por todo el terreno
+	var wetConcentrations = []
+	for i in self.wetPoints:
+		wetConcentrations.append([rng.randi_range(0, image.get_width() -1), rng.randi_range(0, image.get_height() -1), rng.randf(), rng.randi_range(image.get_width() / 50, image.get_width() -1)])
+		print("x: ", wetConcentrations[i][0], " y: ", wetConcentrations[i][1], " wet: ", wetConcentrations[i][2], " range: ", wetConcentrations[i][3])
 	
 	#Se crea mapa de temperatura (R), humedad (G), vientos (BA)
 	var max_blue = 0
@@ -128,7 +89,7 @@ func _ready():
 		for x in image.get_width():
 			var height = heightImage.get_pixel(x, y).r
 			#red representa temperatura
-			var red = 1 - remap(minTemperature, maxTemperature, self.seaLevel, 1, height * (maxTemperature - minTemperature))
+			var red = 1 - MathUtils.remap(minTemperature, maxTemperature, self.seaLevel, 1, height * (maxTemperature - minTemperature))
 			#blue representa humedad
 			var blue = 0
 			for i in self.wetPoints:
@@ -147,6 +108,11 @@ func _ready():
 	image.unlock()
 	heightImage.unlock()
 	
+	#se pasan variables uniformes al shader
+	self.heightMap.create_from_image(heightImage)
+	print("biome ", heightMap.get_data().get_height(), heightMap.get_data().get_width())
+	self.get_surface_material(0).set_shader_param("map", heightMap)
+	self.get_surface_material(0).set_shader_param("height_scale", 1)
 	self.biomeMap.create_from_image(image)
 	print("biome ", biomeMap.get_data().get_height(), biomeMap.get_data().get_width(), ", ", self.biomeMap.get_data())
 	self.get_surface_material(0).set_shader_param("biome_map", biomeMap)
