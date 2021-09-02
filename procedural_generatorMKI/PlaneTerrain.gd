@@ -13,7 +13,7 @@ var wetPoints = 5
 
 #variables sobre algoritmos físicos
 var talus_angle = 0.03125
-var iterations = 100
+var iterations = 50
 #modified Von Neumann neighbourhood
 var neighbourhood = [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1)]
 
