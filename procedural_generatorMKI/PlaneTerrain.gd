@@ -10,10 +10,11 @@ var seaLevel = 0
 var maxTemperature = 30
 var minTemperature = 0
 var wetPoints = 5
+var climate_iterations = 10
 
 #variables sobre algoritmos físicos
 var talus_angle = 0.03125
-var iterations = 50
+var iterations = 25
 #modified Von Neumann neighbourhood
 var neighbourhood = [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1)]
 
@@ -24,7 +25,7 @@ func _ready():
 	var noise = OpenSimplexNoise.new()
 	#reemplazar por semilla suministrada por el usuario
 	noise.seed = 3493353#randi()
-	rng.seed = noise.seed
+	rng.set_seed(noise.seed)
 	noise.octaves = 8
 	noise.period = 64.0
 	noise.persistence = 0.5
@@ -77,13 +78,13 @@ func _ready():
 					new_height = lowest_height + slope_max / 2
 					heightImage.set_pixel(x + self.neighbourhood[lowest_index].x, y + self.neighbourhood[lowest_index].y, Color(new_height, new_height, new_height, 1))
 	
-	#se generan puntos iniciales d ehumedad a partir de los cuales se distribuirá la humedad por todo el terreno
+	#se generan puntos iniciales de humedad a partir de los cuales se distribuirá la humedad por todo el terreno
 	var wetConcentrations = []
 	for i in self.wetPoints:
 		wetConcentrations.append([rng.randi_range(0, image.get_width() -1), rng.randi_range(0, image.get_height() -1), rng.randf(), rng.randi_range(image.get_width() / 50, image.get_width() -1)])
 		print("x: ", wetConcentrations[i][0], " y: ", wetConcentrations[i][1], " wet: ", wetConcentrations[i][2], " range: ", wetConcentrations[i][3])
 	
-	#Se crea mapa de temperatura (R), humedad (G), vientos (BA)
+	#Se crea mapa de temperatura (R), humedad (B)
 	var max_blue = 0
 	for y in image.get_height():
 		for x in image.get_width():
@@ -104,17 +105,40 @@ func _ready():
 			#image.set_pixel(x, y, Color(self.rng.randf(), self.rng.randf(), self.rng.randf(), self.rng.randf()))
 			#print("map x: ", x, " y: ", y, " wet: ", blue)
 			image.set_pixel(x, y, Color(red, 0, blue, 1))
-	
+	#se aplica campo vetorial de vientos al mapa de clima para simular precipitaciones
+	var wind_field = MathUtils.generate_vectorial_fractal_field(image.get_width(), image.get_height(), self.rng)
+	for k in self.climate_iterations:
+		for y in image.get_height():
+			for x in image.get_width():
+				var red = image.get_pixel(x, y).r
+				var blue = image.get_pixel(x, y).b
+				var max_delta_wet = 1 - blue
+				var coords = MathUtils.angle_to_grid(wind_field[x][y])
+				var next_x = x - coords[0]
+				var next_y = y - coords[1]
+				if next_x >= 0 and next_x < image.get_width() and next_y >= 0 and next_y < image.get_height():
+					var red_i = image.get_pixel(next_x, next_y).r
+					var blue_i = image.get_pixel(next_x, next_y).b
+					var wet_i = red_i * blue_i
+					if wet_i > max_delta_wet:
+						wet_i = max_delta_wet
+					blue += wet_i
+					if blue_i - wet_i < 0 or blue_i - wet_i > 1:
+						print("map x: ", next_x, " y: ", next_y, " wet: ", blue_i - wet_i)
+					if blue < 0 or blue > 1:
+						print("map x: ", x, " y: ", y, " wet: ", blue)
+					image.set_pixel(next_x, next_y, Color(red_i, 0, blue_i - wet_i, 1))
+					image.set_pixel(x, y, Color(red, 0, blue, 1))
 	image.unlock()
 	heightImage.unlock()
 	
 	#se pasan variables uniformes al shader
 	self.heightMap.create_from_image(heightImage)
-	print("biome ", heightMap.get_data().get_height(), heightMap.get_data().get_width())
+	#print("biome ", heightMap.get_data().get_height(), heightMap.get_data().get_width())
 	self.get_surface_material(0).set_shader_param("map", heightMap)
 	self.get_surface_material(0).set_shader_param("height_scale", 1)
 	self.biomeMap.create_from_image(image)
-	print("biome ", biomeMap.get_data().get_height(), biomeMap.get_data().get_width(), ", ", self.biomeMap.get_data())
+	print("biome ", biomeMap.get_data().get_height(), "x", biomeMap.get_data().get_width(), ", seed: ", self.rng.get_seed())
 	self.get_surface_material(0).set_shader_param("biome_map", biomeMap)
 	self.get_surface_material(0).set_shader_param("seed", rng.randf_range(0, pow(2.0, 63)))
 	

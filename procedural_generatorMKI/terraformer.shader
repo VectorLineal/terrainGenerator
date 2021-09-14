@@ -30,6 +30,16 @@ float remap(float iMin, float iMax, float oMin, float oMax, float v){
 	return lerp(oMin, oMax, t);
 }
 
+vec2 code_vec2(vec2 v){
+	vec2 t = vec2((v.x + 1.0) / 2.0, (v.y + 1.0) / 2.0);
+	return t;
+}
+	
+vec2 decode_vec2(vec2 t){
+	vec2 v = vec2(2.0 * t.x - 1.0, 2.0 * t.y - 1.0);
+	return v;
+}
+
 void vertex() {
 	float tempRanges = 9.0;
 	float height = texture(map, VERTEX.xz / 2.0 + 0.5).x;
