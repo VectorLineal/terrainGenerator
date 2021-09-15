@@ -6,15 +6,19 @@ extends MeshInstance
 var heightMap
 var biomeMap
 var rng = RandomNumberGenerator.new()
+
+#Variables sobre la generación climática
 var seaLevel = 0
 var maxTemperature = 30
 var minTemperature = 0
 var wetPoints = 5
-var climate_iterations = 10
+var maxWet = 1
+var maxWetRange = 0.6
+var climate_iterations = 20
 
 #variables sobre algoritmos físicos
 var talus_angle = 0.03125
-var iterations = 25
+var iterations = 5
 #modified Von Neumann neighbourhood
 var neighbourhood = [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1)]
 
@@ -81,7 +85,7 @@ func _ready():
 	#se generan puntos iniciales de humedad a partir de los cuales se distribuirá la humedad por todo el terreno
 	var wetConcentrations = []
 	for i in self.wetPoints:
-		wetConcentrations.append([rng.randi_range(0, image.get_width() -1), rng.randi_range(0, image.get_height() -1), rng.randf(), rng.randi_range(image.get_width() / 50, image.get_width() -1)])
+		wetConcentrations.append([rng.randi_range(0, image.get_width() -1), rng.randi_range(0, image.get_height() -1), rng.randf() * self.maxWet, rng.randi_range(image.get_width() / 50, image.get_width() -1) * self.maxWetRange])
 		print("x: ", wetConcentrations[i][0], " y: ", wetConcentrations[i][1], " wet: ", wetConcentrations[i][2], " range: ", wetConcentrations[i][3])
 	
 	#Se crea mapa de temperatura (R), humedad (B)
@@ -102,9 +106,8 @@ func _ready():
 				max_blue = blue
 			if max_blue > 0:
 				blue = blue / max_blue
-			#image.set_pixel(x, y, Color(self.rng.randf(), self.rng.randf(), self.rng.randf(), self.rng.randf()))
-			#print("map x: ", x, " y: ", y, " wet: ", blue)
-			image.set_pixel(x, y, Color(red, 0, blue, 1))
+			#print("map x: ", x, " y: ", y, " wet: ", blue," temp: ", red)
+			image.set_pixel(x, y, Color(red, 0, blue * self.maxWet, 1))
 	#se aplica campo vetorial de vientos al mapa de clima para simular precipitaciones
 	var wind_field = MathUtils.generate_vectorial_fractal_field(image.get_width(), image.get_height(), self.rng)
 	for k in self.climate_iterations:
@@ -126,9 +129,9 @@ func _ready():
 					if blue_i - wet_i < 0 or blue_i - wet_i > 1:
 						print("map x: ", next_x, " y: ", next_y, " wet: ", blue_i - wet_i)
 					if blue < 0 or blue > 1:
-						print("map x: ", x, " y: ", y, " wet: ", blue)
-					image.set_pixel(next_x, next_y, Color(red_i, 0, blue_i - wet_i, 1))
-					image.set_pixel(x, y, Color(red, 0, blue, 1))
+						print("map x: ", x, " y: ", y, " wet: ", blue," temp: ", red)
+					image.set_pixel(next_x, next_y, Color(red_i, 0, (blue_i - wet_i) * self.maxWet, 1))
+					image.set_pixel(x, y, Color(red, 0, blue * self.maxWet, 1))
 	image.unlock()
 	heightImage.unlock()
 	
@@ -136,7 +139,7 @@ func _ready():
 	self.heightMap.create_from_image(heightImage)
 	#print("biome ", heightMap.get_data().get_height(), heightMap.get_data().get_width())
 	self.get_surface_material(0).set_shader_param("map", heightMap)
-	self.get_surface_material(0).set_shader_param("height_scale", 1)
+	self.get_surface_material(0).set_shader_param("height_scale", 0.75)
 	self.biomeMap.create_from_image(image)
 	print("biome ", biomeMap.get_data().get_height(), "x", biomeMap.get_data().get_width(), ", seed: ", self.rng.get_seed())
 	self.get_surface_material(0).set_shader_param("biome_map", biomeMap)
