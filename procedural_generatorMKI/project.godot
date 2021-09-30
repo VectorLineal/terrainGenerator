@@ -15,12 +15,18 @@ _global_script_classes=[ {
 "path": "res://math_utils.gd"
 }, {
 "base": "Reference",
+"class": "TerrainRefinement",
+"language": "GDScript",
+"path": "res://TerrainRefinement.gd"
+}, {
+"base": "Reference",
 "class": "Voronoi",
 "language": "GDScript",
 "path": "res://Voronio.gd"
 } ]
 _global_script_class_icons={
 "MathUtils": "",
+"TerrainRefinement": "",
 "Voronoi": ""
 }
 

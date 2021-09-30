@@ -1,20 +1,39 @@
 shader_type spatial;
 //render_mode unshaded;
+uniform float seed = 4791.9511;
+uniform float amplitude = 1.0;
+uniform float frequency = 200.0;
+uniform vec2 texture_size = vec2(512, 512);
 
 uniform float minTemp = 0.0;
 uniform float height_scale = 0.5;
-uniform float seed = 43758.5453;
 uniform float sea_level = 0.0;
 uniform sampler2D map;
 uniform sampler2D biome_map;
-uniform vec4 color;
 
-float rand(vec2 co){
-    return fract(sin(dot(co.xy ,vec2(seed * 0.000297, seed * 0.00178))) * seed);
+float hash(vec2 p) {
+  return fract(sin(dot(p * 17.17, vec2(14.91, 67.31))) * seed);
 }
 
-float rand_range(vec2 co, float inf, float sup){
-	return (rand(co) * (sup - inf)) + inf;
+float noise(vec2 x) {
+  vec2 p = floor(x);
+  vec2 f = fract(x);
+  f = f * f * (3.0 - 2.0 * f);
+  vec2 a = vec2(1.0, 0.0);
+  return mix(mix(hash(p + a.yy), hash(p + a.xy), f.x),
+         mix(hash(p + a.yx), hash(p + a.xx), f.x), f.y);
+}
+
+float fbm(vec2 x) {
+  float height = 0.0;
+  float curAmp = amplitude;
+  float curFreq = frequency;
+  for (int i = 0; i < 6; i++){
+    height += noise(x * curFreq) * curAmp;
+    curAmp *= 0.5;
+    curFreq *= 2.0;
+  }
+  return height;
 }
 
 float lerp(float a, float b, float t){
@@ -53,15 +72,26 @@ bool isDotInSquare(vec4 square, float x, float y){
 
 void vertex() {
 	float tempRanges = 9.0;
-	//float height = texture(map, VERTEX.xz / 2.0 + 0.5).x;
-	float height = texture(map, UV).x;
-	//if(height >= 8.0 / tempRanges){
-	//	texture(biome_map, VERTEX.xz / 2.0 + 0.5).x = rand_range(VERTEX.xz, remap(0, 30.0, 0, 1.0, minTemp), remap(0, 30.0, 0, 1.0, 2.0 * minTemp / 30.0));
-	//}
+	float height = texture(map, VERTEX.xz / 2.0 + 0.5).x;
+	//float height = texture(map, UV).x;
+	
+	height *= height_scale;
+	VERTEX.y += height;
+  	//COLOR.xyz = texture(biome_map, UV).xxx;
+	vec2 e = vec2(0.01, 0);
+	vec3 normal = normalize(vec3(texture(map, VERTEX.xz / 2.0 + 0.5 - e).x - texture(map, VERTEX.xz / 2.0 + 0.5 + e).x, 2.0 * e.x, texture(map, VERTEX.xz / 2.0 + 0.5 - e.yx).x - texture(map, VERTEX.xz / 2.0 + 0.5 + e.yx).x));
+	NORMAL = normal;
+}
+
+void fragment(){
+	float xPeriod = 60.0;
+	float yPeriod = 60.0;
+	float turbPower = 200.0;
+	float turbSize = 0.5;
 	
 	//desertico
 	vec4 desert = vec4(0, 0, 0.12, 1);
-	//vec3 desertC = vec3(0.82, 0.52, 0.39);
+	//vec3 desertC = vec3(0.82, 0.52, 0.39); vec3(0.784, 0.598, 0.337);
 	vec3 desertC = vec3(0.765, 0.741, 0.655);
 	//yermo
 	vec4 wasteland = vec4(0.12, 0, 0.24, 1);
@@ -93,7 +123,11 @@ void vertex() {
 	vec3 jungleWC = vec3(0.168, 0.318, 0.173);
 	//vec3 jungleC = vec3(0.157, 0.45, 0.2);
 	
-	float temperature = texture(biome_map, UV).x;
+	float xyValue = UV.x * xPeriod / texture_size.x + UV.y * yPeriod / texture_size.y + turbPower * fbm(UV * turbSize) / 256.0;
+    float sineValue = abs(sin(xyValue * 3.14159));
+	ALBEDO = fbm(UV) * vec3(0.4, 0.19, 0.04);
+	
+	/*float temperature = texture(biome_map, UV).x;
 	float wet = texture(biome_map, UV).z;
 	vec3 biomeColor;
 	if(isDotInSquare(desert, wet, temperature)){
@@ -119,16 +153,5 @@ void vertex() {
 	}else{ // en caso que no se coinsida con un bioma anteriormente listado, se tomará como bioma yermo
 		biomeColor = wastelandC;
 	}
-	
-	height *= height_scale;
-	VERTEX.y += height;
-  	//COLOR.xyz = texture(biome_map, UV).xxx;
-	COLOR.xyz = vec3(height) * biomeColor;
-	vec2 e = vec2(0.01, 0.0);
-	vec3 normal = normalize(vec3(texture(map, VERTEX.xz / 2.0 - e).x - texture(map, VERTEX.xz / 2.0 + e).x, 2.0 * e.x, texture(map, VERTEX.xz / 2.0 - e.yx).x - texture(map, VERTEX.xz / 2.0 + e.yx).x));
-	NORMAL = normal;
-}
-
-void fragment(){
-  ALBEDO = COLOR.xyz;
+  ALBEDO = biomeColor;*/
 }

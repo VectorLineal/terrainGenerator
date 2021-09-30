@@ -6,19 +6,20 @@ extends MeshInstance
 var heightMap
 var biomeMap
 var rng = RandomNumberGenerator.new()
+var size = 512
 
 #Variables sobre la generación climática
 var seaLevel = 0
 var maxTemperature = 30
 var minTemperature = 0
-var wetPoints = 5
+var wetPoints = 8
 var maxWet = 1
 var maxWetRange = 0.6
-var climate_iterations = 20
+var climate_iterations = 0
 
 #variables sobre algoritmos físicos
-var talus_angle = 0.03125
-var iterations = 5
+var talus_angle = 20 / self.size
+var iterations = 10
 #modified Von Neumann neighbourhood
 var neighbourhood = [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1)]
 
@@ -35,53 +36,23 @@ func _ready():
 	noise.persistence = 0.5
 	noise.lacunarity = 2.0
 	self.heightMap = ImageTexture.new()
-	var heightImage = noise.get_image(512, 512)
-	Voronoi.apply_voronoi_diagram(heightImage, 16, 1, rng)
+	var heightImage = noise.get_image(size, size)
+	Voronoi.apply_voronoi_diagram(heightImage, 16, 1, 0.25, 0.0, rng)
 	
 	#se genera mapa de Voronoi
 	#self.voronoiMap = ImageTexture.new()
-	#self.voronoiMap.create_from_image(Voronoi.generate_voronoi_diagram(Vector2(512, 512), 15, 1, rng))
+	#self.voronoiMap.create_from_image(Voronoi.generate_voronoi_diagram(Vector2(size, size), 15, 1, rng))
 	#self.get_surface_material(0).set_shader_param("voronoi_map", voronoiMap)
 	
 	#Paso de ajuste de terreno y simulación usando algún métodos físicos (erosión física y termal).
 	self.biomeMap = ImageTexture.new()
 	var image = Image.new()
-	image.create(512, 512, false, Image.FORMAT_RGBAF)
+	image.create(size, size, false, Image.FORMAT_RGBAF)
+	#se aplica algoritmo de refinamiento de terreno
+	TerrainRefinement.thermal_erosion(heightImage, self.talus_angle, self.iterations, self.neighbourhood)
+	#TerrainRefinement.olsen_erosion(heightImage, self.talus_angle, self.iterations, self.neighbourhood)
 	image.lock()
 	heightImage.lock()
-	
-	#se aplica erosión termal optimizada de Olsen
-	for iter in self.iterations:
-		for y in heightImage.get_height():
-			for x in heightImage.get_width():
-# warning-ignore:unused_variable
-				var slope_total = 0
-				var slope_max = 0
-				var height = heightImage.get_pixel(x, y).r
-				#casilla objetivo donde se mandará el material erosionado
-				var lowest_height = 1
-				var lowest_index = -1
-				#se recorre vendiaro de Neumann
-				for i in self.neighbourhood.size():
-					var next_x = x + self.neighbourhood[i].x
-					var next_y = y + self.neighbourhood[i].y
-					#El vecindario debe quedar dentro de los constraints del mapa de alturas
-					if next_x >= 0 and next_x < heightImage.get_width() and next_y >= 0 and next_y < heightImage.get_height():
-						var height_i = heightImage.get_pixel(next_x, next_y).r
-						var slope_i = height - height_i
-						if slope_i > self.talus_angle:
-							slope_total += slope_i
-							if slope_i > slope_max:
-								lowest_height = height_i
-								slope_max = slope_i
-								lowest_index = i
-				#Se mueve el material respectivo y se modifica el mapa de altura
-				if lowest_index >= 0:
-					var new_height = height - slope_max / 2
-					heightImage.set_pixel(x, y, Color(new_height, new_height, new_height, 1))
-					new_height = lowest_height + slope_max / 2
-					heightImage.set_pixel(x + self.neighbourhood[lowest_index].x, y + self.neighbourhood[lowest_index].y, Color(new_height, new_height, new_height, 1))
-	
 	#se generan puntos iniciales de humedad a partir de los cuales se distribuirá la humedad por todo el terreno
 	var wetConcentrations = []
 	for i in self.wetPoints:
@@ -143,7 +114,7 @@ func _ready():
 	self.biomeMap.create_from_image(image)
 	print("biome ", biomeMap.get_data().get_height(), "x", biomeMap.get_data().get_width(), ", seed: ", self.rng.get_seed())
 	self.get_surface_material(0).set_shader_param("biome_map", biomeMap)
-	self.get_surface_material(0).set_shader_param("seed", rng.randf_range(0, pow(2.0, 63)))
+	self.get_surface_material(0).set_shader_param("seed", rng.randf_range(0, 300000))
 	
 	#Paso de refinamiento de terreno usando técnicas de sistemas inteligentes
 	#El texturizado se hace desde el fragment shader dependiendo de clima, humedad, altura, bioma, etc.
