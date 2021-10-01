@@ -22,6 +22,7 @@ var talus_angle = 20 / self.size
 var iterations = 10
 #modified Von Neumann neighbourhood
 var neighbourhood = [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1)]
+var fullNeighbourhood = [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1), Vector2(0, -1), Vector2(1, 0), Vector2(0, 1), Vector2(-1, 0)]
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -49,8 +50,8 @@ func _ready():
 	var image = Image.new()
 	image.create(size, size, false, Image.FORMAT_RGBAF)
 	#se aplica algoritmo de refinamiento de terreno
-	TerrainRefinement.thermal_erosion(heightImage, self.talus_angle, self.iterations, self.neighbourhood)
-	#TerrainRefinement.olsen_erosion(heightImage, self.talus_angle, self.iterations, self.neighbourhood)
+	#TerrainRefinement.thermal_erosion(heightImage, self.talus_angle, self.iterations, self.neighbourhood)
+	TerrainRefinement.olsen_erosion(heightImage, self.talus_angle, self.iterations, self.neighbourhood)
 	image.lock()
 	heightImage.lock()
 	#se generan puntos iniciales de humedad a partir de los cuales se distribuirá la humedad por todo el terreno
@@ -59,11 +60,24 @@ func _ready():
 		wetConcentrations.append([rng.randi_range(0, image.get_width() -1), rng.randi_range(0, image.get_height() -1), rng.randf() * self.maxWet, rng.randi_range(image.get_width() / 50, image.get_width() -1) * self.maxWetRange])
 		print("x: ", wetConcentrations[i][0], " y: ", wetConcentrations[i][1], " wet: ", wetConcentrations[i][2], " range: ", wetConcentrations[i][3])
 	
-	#Se crea mapa de temperatura (R), humedad (B)
+	#Se crea mapa de temperatura (R), inclinación (G), humedad (B)
 	var max_blue = 0
 	for y in image.get_height():
 		for x in image.get_width():
 			var height = heightImage.get_pixel(x, y).r
+			var slope_total = 0
+			var neighbours_visited = 0
+			for i in fullNeighbourhood.size():
+					var next_x = x + fullNeighbourhood[i].x
+					var next_y = y + fullNeighbourhood[i].y
+					#El vecindario debe quedar dentro de los constraints del mapa de alturas
+					if next_x >= 0 and next_x < heightImage.get_width() and next_y >= 0 and next_y < heightImage.get_height():
+						var height_i = heightImage.get_pixel(next_x, next_y).r
+						var slope_i = abs(height - height_i)
+						slope_total += slope_i
+						neighbours_visited += 1
+			#green  representa el mapa de inclinaciones
+			var green = slope_total / neighbours_visited
 			#red representa temperatura
 			var red = 1 - MathUtils.remap(minTemperature, maxTemperature, self.seaLevel, 1, height * (maxTemperature - minTemperature))
 			#blue representa humedad
@@ -78,7 +92,7 @@ func _ready():
 			if max_blue > 0:
 				blue = blue / max_blue
 			#print("map x: ", x, " y: ", y, " wet: ", blue," temp: ", red)
-			image.set_pixel(x, y, Color(red, 0, blue * self.maxWet, 1))
+			image.set_pixel(x, y, Color(red, green, blue * self.maxWet, 1))
 	#se aplica campo vetorial de vientos al mapa de clima para simular precipitaciones
 	var wind_field = MathUtils.generate_vectorial_fractal_field(image.get_width(), image.get_height(), self.rng)
 	for k in self.climate_iterations:
