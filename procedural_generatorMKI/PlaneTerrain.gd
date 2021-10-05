@@ -15,11 +15,11 @@ var minTemperature = 0
 var wetPoints = 8
 var maxWet = 1
 var maxWetRange = 0.6
-var climate_iterations = 0
+var climate_iterations = 20
 
 #variables sobre algoritmos físicos
 var talus_angle = 20 / self.size
-var iterations = 10
+var iterations = 20
 #modified Von Neumann neighbourhood
 var neighbourhood = [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1)]
 var fullNeighbourhood = [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1), Vector2(0, -1), Vector2(1, 0), Vector2(0, 1), Vector2(-1, 0)]
@@ -30,7 +30,7 @@ func _ready():
 	#print(self.get_surface_material(0).get_shader_param("map"))
 	var noise = OpenSimplexNoise.new()
 	#reemplazar por semilla suministrada por el usuario
-	noise.seed = 3493353#randi()
+	noise.seed = 3419374653#randi()
 	rng.set_seed(noise.seed)
 	noise.octaves = 8
 	noise.period = 64.0

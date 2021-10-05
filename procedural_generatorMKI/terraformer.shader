@@ -92,12 +92,15 @@ void vertex() {
 
 void fragment(){
 	//desert amp:1, freq:1000, x:60, y:60, turbP:60, turbSize:2, conf:1
+	//snow amp:1, freq:800, clip: 0.2, conf:g2
+	//grass amp 0.8, freq 1280, clip: 0.2 conf: g1
+	//desert amp:1, freq:800, x:30, y:30, turbP:700, turbSize:2, conf:1
 	float amplitude = 1.0;
-	float frequency = 100.0;
-	float xPeriod = 40.0;
-	float yPeriod = 40.0;
-	float turbPower = 140.0;
-	float turbSize = 8.0;
+	float frequency = 800.0;
+	float xPeriod = 30.0;
+	float yPeriod = 30.0;
+	float turbPower = 700.0;
+	float turbSize = 2.0;
 	
 	//desertico
 	vec4 desert = vec4(0, 0, 0.12, 1);
@@ -105,7 +108,7 @@ void fragment(){
 	vec3 desertC = vec3(0.97, 0.678, 0.204);
 	//yermo
 	vec4 wasteland = vec4(0.12, 0, 0.24, 1);
-	vec3 wastelandC = vec3(0.5, 0.25, 0);
+	vec3 wastelandC = vec3(0.4, 0.19, 0.04);
 	//nevado
 	vec4 snow = vec4(0.24, 0, 1, 0.2);
 	vec3 snowC = vec3(0.569, 0.6, 0.67);
@@ -133,42 +136,80 @@ void fragment(){
 	vec3 jungleWC = vec3(0.168, 0.318, 0.173);
 	//vec3 jungleC = vec3(0.157, 0.45, 0.2);
 	
+	//variables configuración normal
 	float xyValue = UV.x * xPeriod / texture_size.x + UV.y * yPeriod / texture_size.y + turbPower * fbm(UV * turbSize, amplitude, frequency) / 256.0;
     float sineValue = abs(sin(xyValue * 3.14159));
-	ALBEDO = ((sineValue + textureShaperV2) / 2.0) * greenlandC;
-	if(slope >= 0.003){
-		ALBEDO = fbm(UV * turbSize, 1.6, 200.0) * wastelandC;
-	}else{
-		ALBEDO = ((sineValue + textureShaperV2) / 2.0) * greenlandC;
-	}
+	//variable configuración G
+	float clip = 0.2;
+	float grassMultiplier = ((hash(UV) * fbm(UV, 0.75, 1280.0)) + clip);
+	//ALBEDO = sineValue * wastelandC;
+	//grass
+	/*if(grassMultiplier > 1.0) grassMultiplier = 1.0;
+	ALBEDO = grassMultiplier * greenlandC;*/
+	//snow
+	/*grassMultiplier = ((hash(UV) + fbm(UV, 1.0, 800.0)) / 2.0) + clip;
+	if(grassMultiplier > 1.0) grassMultiplier = 1.0;
+	ALBEDO = grassMultiplier * snowC;*/
 	//ALBEDO = textureShaperV2;
-	//ALBEDO = vec3(slope, slope, slope);
+	//ALBEDO = vec3(grassMultiplier);
 	
-	/*float temperature = texture(biome_map, UV).x;
+	float temperature = texture(biome_map, UV).x;
 	float wet = texture(biome_map, UV).z;
 	vec3 biomeColor;
 	if(isDotInSquare(desert, wet, temperature)){
-		biomeColor = desertC;
+		amplitude = 1.0;
+		frequency = 1000.0;
+		xPeriod = 60.0;
+		yPeriod = 60.0;
+		turbPower = 60.0;
+		turbSize = 2.0;
+		xyValue = UV.x * xPeriod / texture_size.x + UV.y * yPeriod / texture_size.y + turbPower * fbm(UV * turbSize, amplitude, frequency) / 256.0;
+    	sineValue = abs(sin(xyValue * 3.14159));
+		biomeColor = desertC * sineValue;
 	}else if(isDotInSquare(wasteland, wet, temperature)){
-		biomeColor = wastelandC;
+		amplitude = 1.0;
+		frequency = 800.0;
+		xPeriod = 30.0;
+		yPeriod = 30.0;
+		turbPower = 700.0;
+		turbSize = 2.0;
+		xyValue = UV.x * xPeriod / texture_size.x + UV.y * yPeriod / texture_size.y + turbPower * fbm(UV * turbSize, amplitude, frequency) / 256.0;
+    	sineValue = abs(sin(xyValue * 3.14159));
+		biomeColor = wastelandC * sineValue;
 	}else if(isDotInSquare(snow, wet, temperature)){
-		biomeColor = snowC;
+		grassMultiplier = ((hash(UV) + fbm(UV, 1.0, 800.0)) / 2.0) + clip;
+		if(grassMultiplier > 1.0) grassMultiplier = 1.0;
+		biomeColor = grassMultiplier * snowC;
 	}else if(isDotInSquare(paramount, wet, temperature)){
-		biomeColor = paramountC;
+		grassMultiplier = ((hash(UV) + fbm(UV, 1.0, 800.0)) / 2.0) + clip;
+		if(grassMultiplier > 1.0) grassMultiplier = 1.0;
+		biomeColor = grassMultiplier * snowC;
 	}else if(isDotInSquare(greenland, wet, temperature)){
-		biomeColor = greenlandC;
+		grassMultiplier = ((hash(UV) * fbm(UV, 0.75, 1280.0)) + clip);
+		if(grassMultiplier > 1.0) grassMultiplier = 1.0;
+		biomeColor = grassMultiplier * greenlandC;
 	}else if(isDotInSquare(forest, wet, temperature)){
-		biomeColor = forestC;
+		grassMultiplier = ((hash(UV) * fbm(UV, 0.75, 1280.0)) + clip);
+		if(grassMultiplier > 1.0) grassMultiplier = 1.0;
+		biomeColor = grassMultiplier * greenlandC;
 	}else if(isDotInSquare(forestW, wet, temperature)){
-		biomeColor = forestWC;
+		grassMultiplier = ((hash(UV) * fbm(UV, 0.75, 1280.0)) + clip);
+		if(grassMultiplier > 1.0) grassMultiplier = 1.0;
+		biomeColor = grassMultiplier * greenlandC;
 	}else if(isDotInSquare(plains, wet, temperature)){
-		biomeColor = plainsC;
+		grassMultiplier = ((hash(UV) * fbm(UV, 0.75, 1280.0)) + clip);
+		if(grassMultiplier > 1.0) grassMultiplier = 1.0;
+		biomeColor = grassMultiplier * greenlandC;
 	}else if(isDotInSquare(jungle, wet, temperature)){
-		biomeColor = jungleC;
+		grassMultiplier = ((hash(UV) * fbm(UV, 0.75, 1280.0)) + clip);
+		if(grassMultiplier > 1.0) grassMultiplier = 1.0;
+		biomeColor = grassMultiplier * greenlandC;
 	}else if(isDotInSquare(jungleW, wet, temperature)){
-		biomeColor = jungleWC;
+		grassMultiplier = ((hash(UV) * fbm(UV, 0.75, 1280.0)) + clip);
+		if(grassMultiplier > 1.0) grassMultiplier = 1.0;
+		biomeColor = grassMultiplier * greenlandC;
 	}else{ // en caso que no se coinsida con un bioma anteriormente listado, se tomará como bioma yermo
-		biomeColor = wastelandC;
+		biomeColor = sineValue * wastelandC;
 	}
-  ALBEDO = biomeColor;*/
+  ALBEDO = biomeColor;
 }
