@@ -15,11 +15,11 @@ var minTemperature = 0
 var wetPoints = 8
 var maxWet = 1
 var maxWetRange = 0.6
-var climate_iterations = 20
+var climate_iterations = 50
 
 #variables sobre algoritmos físicos
 var talus_angle = 20 / self.size
-var iterations = 20
+var iterations = 50
 #modified Von Neumann neighbourhood
 var neighbourhood = [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1)]
 var fullNeighbourhood = [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1), Vector2(0, -1), Vector2(1, 0), Vector2(0, 1), Vector2(-1, 0)]
