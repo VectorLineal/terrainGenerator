@@ -75,14 +75,14 @@ bool isDotInSquare(vec4 square, float x, float y){
 
 void vertex() {
 	float tempRanges = 9.0;
-	float height = texture(map, VERTEX.xz / 2.0 + 0.5).x;
+	float height = texture(map, UV).x;
 	//float height = texture(map, UV).x;
 	
 	height *= height_scale;
 	VERTEX.y += height;
   	//COLOR.xyz = texture(biome_map, UV).xxx;
 	vec2 e = vec2(0.01, 0);
-	vec3 normal = normalize(vec3(texture(map, VERTEX.xz / 2.0 + 0.5 - e).x - texture(map, VERTEX.xz / 2.0 + 0.5 + e).x, 2.0 * e.x, texture(map, VERTEX.xz / 2.0 + 0.5 - e.yx).x - texture(map, VERTEX.xz / 2.0 + 0.5 + e.yx).x));
+	vec3 normal = normalize(vec3(texture(map, UV - e).x - texture(map, UV + e).x, 2.0 * e.x, texture(map, UV - e.yx).x - texture(map, UV + e.yx).x));
 	NORMAL = normal;
 	slope = texture(biome_map, VERTEX.xz / 2.0 + 0.5).y;
 	textureShaperV1 = vec3((fbm(VERTEX.xz * 4.0, 1.2, 200.0) + sin((VERTEX.z - VERTEX.x) * 160.0) + sin((VERTEX.z + VERTEX.x) * 240.0) / 3.0));

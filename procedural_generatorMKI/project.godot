@@ -23,11 +23,17 @@ _global_script_classes=[ {
 "class": "Voronoi",
 "language": "GDScript",
 "path": "res://Voronio.gd"
+}, {
+"base": "Reference",
+"class": "Weather",
+"language": "GDScript",
+"path": "res://Weather.gd"
 } ]
 _global_script_class_icons={
 "MathUtils": "",
 "TerrainRefinement": "",
-"Voronoi": ""
+"Voronoi": "",
+"Weather": ""
 }
 
 [application]

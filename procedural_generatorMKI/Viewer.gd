@@ -16,21 +16,13 @@ func _input(event):
 		rotate_object_local(Vector3(1, 0, 0), rot_y) # then rotate in X
 	
 	if event is InputEventKey and event.pressed:
-		if event.scancode == KEY_W:
-			#var mov_x = sin(self.rotation.y) #* cos(self.rotation.z)
-			#var mov_y = sin(self.rotation.x) #* sin(self.rotation.z)
-			#var mov_z = cos(self.rotation.x) * cos(self.rotation.y)
-			#print("W was pressed", self.rotation_degrees, "is unit: ", pow(mov_x, 2) + pow(mov_y, 2) + pow(mov_z, 2))
-			#print("moves in x: ", mov_x, ", in y: ", mov_y,  ", in z: ", mov_z)
+		if event.scancode == KEY_W: #move forward
 			self.translate(Vector3(0, 0, -speed))
-			#self.translate(Vector3(-speed * mov_x, speed * mov_y, -speed * mov_z))
-		if event.scancode == KEY_A:
+		if event.scancode == KEY_A: #move left
 			self.translate(Vector3(-speed, 0, 0))
-		if event.scancode == KEY_S:
+		if event.scancode == KEY_S: #move backwards
 			self.translate(Vector3(0, 0, speed))
-			#self.translate(Vector3(0, -speed * sin(self.rot_x), speed * cos(self.rot_x)))
-			#self.translate(Vector3(speed * sin(self.rot_y), 0, speed * cos(self.rot_y)))
-		if event.scancode == KEY_D:
+		if event.scancode == KEY_D: #move right
 			self.translate(Vector3(speed, 0, 0))
 
 # Called when the node enters the scene tree for the first time.

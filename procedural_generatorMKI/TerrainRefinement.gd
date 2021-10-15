@@ -5,7 +5,6 @@ static func thermal_erosion(heightImage: Image, talus_angle: float, iterations: 
 	for iter in iterations:
 		for y in heightImage.get_height():
 			for x in heightImage.get_width():
-				#var slope_total = 0
 				var slope_max = 0
 				var height = heightImage.get_pixel(x, y).r
 				#casilla objetivo donde se mandará el material erosionado
@@ -20,7 +19,6 @@ static func thermal_erosion(heightImage: Image, talus_angle: float, iterations: 
 						var height_i = heightImage.get_pixel(next_x, next_y).r
 						var slope_i = height - height_i
 						if slope_i > talus_angle:
-							#slope_total += slope_i
 							if slope_i > slope_max:
 								lowest_height = height_i
 								slope_max = slope_i
@@ -39,7 +37,6 @@ static func olsen_erosion(heightImage: Image, talus_angle: float, iterations: in
 	for iter in iterations:
 		for y in heightImage.get_height():
 			for x in heightImage.get_width():
-				#var slope_total = 0
 				var slope_max = 0
 				var height = heightImage.get_pixel(x, y).r
 				#casilla objetivo donde se mandará el material erosionado
