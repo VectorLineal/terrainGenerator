@@ -9,6 +9,29 @@ static func remap(iMin, iMax, oMin, oMax, v):
 static func sqr_dst(in_x, in_y, fin_x, fin_y):
 	return pow(fin_x - in_x, 2) + pow(fin_y - in_y, 2)
 
+#calcula las medidas estadísticas del mapa de inclinaciones, promedio, desviación estándar y puntaje de erosión.
+static func calculate_scores(image: Image):
+	var acumulator = 0
+	image.lock()
+	#Se revisa el mapa de inclinación, tercer componente del mapa de biomas
+	for y in image.get_height():
+		for x in image.get_width():
+			acumulator += image.get_pixel(x, y).g
+	var mean = acumulator / (image.get_height() * image.get_width())
+	
+	#se calcula la desviación estándar teniendo ya el promedio
+	acumulator = 0
+	for y in image.get_height():
+		for x in image.get_width():
+			acumulator += pow(image.get_pixel(x, y).g - mean, 2)
+	var desviation = sqrt(acumulator / (image.get_height() * image.get_width()))
+	#la media no puede ser 0 o generará indeterminación
+	if mean == 0: mean += 0.00000000001
+	#el puntaje de erosión se calcula con base en la propuesta de Olsen
+	var score = desviation / mean
+	image.unlock()
+	return Vector3(mean, desviation, score)
+
 #A partir de un vector, retorna una dirección en una cuadrícula
 static func angle_to_grid(v: Vector2): #vector con componentes entre [-1, 1]
 	var ang = v.angle()
