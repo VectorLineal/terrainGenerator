@@ -74,9 +74,7 @@ bool isDotInSquare(vec4 square, float x, float y){
 }
 
 void vertex() {
-	float tempRanges = 9.0;
 	float height = texture(map, UV).x;
-	//float height = texture(map, UV).x;
 	
 	height *= height_scale;
 	VERTEX.y += height;
@@ -84,7 +82,7 @@ void vertex() {
 	vec2 e = vec2(0.01, 0);
 	vec3 normal = normalize(vec3(texture(map, UV - e).x - texture(map, UV + e).x, 2.0 * e.x, texture(map, UV - e.yx).x - texture(map, UV + e.yx).x));
 	NORMAL = normal;
-	slope = texture(biome_map, VERTEX.xz / 2.0 + 0.5).y;
+	slope = texture(biome_map, UV).y;
 	textureShaperV1 = vec3((fbm(VERTEX.xz * 4.0, 1.2, 200.0) + sin((VERTEX.z - VERTEX.x) * 160.0) + sin((VERTEX.z + VERTEX.x) * 240.0) / 3.0));
 	textureShaperV2 = vec3((fbm(VERTEX.xz * 0.15, 1.0, 2000.0) + sin((VERTEX.z - VERTEX.x) * 1200.0 * cos(VERTEX.x * 320.0) * sin(VERTEX.z * 640.0)) + sin((VERTEX.z + VERTEX.x) * 500.0 * cos(VERTEX.x * 640.0) * sin(VERTEX.z * 320.0))) / 3.0);
 	textureShaperV3 = vec3((fbm(VERTEX.xz * 1.0, 2.0, 2200.0) + sin((VERTEX.z - VERTEX.x) * 3200.0) + sin((VERTEX.z + VERTEX.x) * 1600.0)  + cos(VERTEX.x * 50.0) * sin(VERTEX.z * 80.0)) / 4.0);
@@ -229,5 +227,6 @@ void fragment(){
 		biomeColor = grassMultiplier * wastelandC;
 	}
 	//biomeColor = textureShaperV2;
-  ALBEDO = biomeColor;
+	ALBEDO = biomeColor;
+	//ALBEDO = vec3(0.0, 0.0, texture(biome_map, UV).z);
 }

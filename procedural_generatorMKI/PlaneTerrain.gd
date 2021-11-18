@@ -8,6 +8,10 @@ var biomeMap
 var rng = RandomNumberGenerator.new()
 var size = 512
 var original_seed
+var octaves = 8
+var period = 64.0
+var persistence = 0.5
+var lacunarity = 2.0
 
 #variables para medir desempeño
 var slope_score
@@ -16,14 +20,14 @@ var slope_score
 var seaLevel = 0
 var maxTemperature = 30
 var minTemperature = 0
-var wetPoints = 8
-var maxWet = 1
+var wetPoints = 10
+var maxWet = 1.0
 var maxWetRange = 0.6
-var climate_iterations = 1
+var climate_iterations = 50
 
 #variables sobre algoritmos físicos
 var talus_angle = 20 / self.size
-var iterations = 50
+var iterations = 1
 #modified Von Neumann neighbourhood
 var neighbourhood = [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1)]
 var fullNeighbourhood = [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1), Vector2(0, -1), Vector2(1, 0), Vector2(0, 1), Vector2(-1, 0)]
@@ -36,12 +40,13 @@ func _ready():
 	self.original_seed = 3419374653#randi()
 	noise.seed = self.original_seed
 	rng.set_seed(noise.seed)
-	noise.octaves = 8
-	noise.period = 64.0
-	noise.persistence = 0.5
-	noise.lacunarity = 2.0
+	noise.octaves = self.octaves
+	noise.period = self.period
+	noise.persistence = self.persistence
+	noise.lacunarity = self.lacunarity
 	self.heightMap = ImageTexture.new()
 	var heightImage = noise.get_image(size, size)
+	#var heightImage = Voronoi.generate_voronoi_diagram(Vector2(512, 512), 24, 1.0, self.rng)
 	#se aplica mapa de Voronoi
 	Voronoi.apply_voronoi_diagram(heightImage, 24, 1, 0.25, 0.0, rng)
 	
@@ -61,7 +66,7 @@ func _ready():
 	self.slope_score = MathUtils.calculate_scores(image)
 	print("slope mean = ", slope_score.x, ", slope standard desviation = ", slope_score.y, ", erosion score = ", slope_score.z)
 	#se aplica campo vetorial de vientos al mapa de clima para simular precipitaciones
-	Weather.simulate_precipitations(image, heightImage, climate_iterations, maxWet, 5, self.rng)
+	Weather.simulate_precipitations(image, heightImage, climate_iterations, maxWet, 2, 0.15, 0.02, self.rng)
 	
 	#se pasan variables uniformes al shader
 	self.heightMap.create_from_image(heightImage)

@@ -52,6 +52,31 @@ static func angle_to_grid(v: Vector2): #vector con componentes entre [-1, 1]
 	else:
 		return [-1, 0]
 
+static func vec_to_grid(origin: Vector2, v: Vector2, size: Vector2, maxRange: float): #vector v con componentes entre [-1, 1]
+	var ang = v.angle()
+	#se calculan los equivalentes de los vectores en el mapa
+	var deltaX = floor(lerp(0, (size.x - 1) * maxRange, abs(v.x)))
+	var deltaY = floor(lerp(0, (size.y - 1) * maxRange, abs(v.y)))
+	if v.x < 0:
+		deltaX *= -1
+	if v.y < 0:
+		deltaY *= -1
+	#se calculan las nuevas coordenadas donde apunta el vector
+	var nextX = origin.x + deltaX
+	var nextY = origin.y + deltaY
+	#se asegura que los valores estén dentro de las coordenadas
+	if nextX < 0:
+		nextX = 0
+	elif nextX >= size.x:
+		nextX = size.x - 1
+		
+	if nextY < 0:
+		nextY = 0
+	elif nextY >= size.y:
+		nextY = size.y - 1
+	
+	return [floor(nextX), floor(nextY)]
+
 #genera un campo vectorial de vectores aleatorios R2 con componentes entre [-1, 1]
 static func generate_vectorial_fractal_field(width: int, height: int, rng: RandomNumberGenerator):
 	#En el peor de los casos, genera un valor máximo de 3, la suma de sus componentes de los vectores de los 4 extremos

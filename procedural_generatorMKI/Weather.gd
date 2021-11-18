@@ -50,7 +50,7 @@ static func distribute_wet_temp(image: Image, heightImage: Image, minTemperature
 	heightImage.unlock()
 
 #simula movimiento de humedad dependiendo del campo vectorial de vientos
-static func simulate_precipitations(image: Image, heightImage: Image, climate_iterations: int, maxWet: float, refresh_rate: int, rng: RandomNumberGenerator):
+static func simulate_precipitations(image: Image, heightImage: Image, climate_iterations: int, maxWet: float, refresh_rate: int, retention: float, maxWetRange: float, rng: RandomNumberGenerator):
 	#se genera campo vectorial de vientos
 	var wind_field = MathUtils.generate_vectorial_fractal_field(image.get_width(), image.get_height(), rng)
 	#se procede a la simulación
@@ -63,22 +63,29 @@ static func simulate_precipitations(image: Image, heightImage: Image, climate_it
 			for x in image.get_width():
 				var red = image.get_pixel(x, y).r
 				var blue = image.get_pixel(x, y).b
-				var max_delta_wet = 1 - blue
-				var coords = MathUtils.angle_to_grid(wind_field[x][y])
-				var next_x = x - coords[0]
-				var next_y = y - coords[1]
-				if next_x >= 0 and next_x < image.get_width() and next_y >= 0 and next_y < image.get_height():
-					var red_i = image.get_pixel(next_x, next_y).r
-					var blue_i = image.get_pixel(next_x, next_y).b
-					var wet_i = red_i * blue_i
-					if wet_i > max_delta_wet:
-						wet_i = max_delta_wet
-					blue += wet_i
-					if blue_i - wet_i < 0 or blue_i - wet_i > 1:
-						print("map x: ", next_x, " y: ", next_y, " wet: ", blue_i - wet_i)
-					if blue < 0 or blue > 1:
-						print("map x: ", x, " y: ", y, " wet: ", blue," temp: ", red)
-					image.set_pixel(next_x, next_y, Color(red_i, 0, (blue_i - wet_i) * maxWet, 1))
-					image.set_pixel(x, y, Color(red, 0, blue * maxWet, 1))
+				var delta_wet = red * blue
+				var max_delta_wet = blue * (1 - retention)
+				if max_delta_wet > 0:
+					var coords = MathUtils.vec_to_grid(Vector2(x, y), wind_field[x][y], Vector2(image.get_width(), image.get_height()), maxWetRange)
+					var next_x = coords[0]
+					var next_y = coords[1]
+					if next_x != x or next_y != y:
+						var red_i = image.get_pixel(next_x, next_y).r
+						var blue_i = image.get_pixel(next_x, next_y).b
+						var max_delta_wet_i = maxWet - blue_i
+						if max_delta_wet_i < max_delta_wet:
+							max_delta_wet = max_delta_wet_i
+						if delta_wet > max_delta_wet:
+							delta_wet = max_delta_wet
+						blue -= delta_wet
+						blue_i += delta_wet
+						#print("map x: ", x, " y: ", y, " wet: ", blue, ", delta: ", delta_wet)
+						#print("to x: ", next_x, " y: ", next_y, " wet: ", blue_i)
+						if blue_i < 0 or blue_i > 1:
+							print("map x: ", next_x, " y: ", next_y, " wet: ", blue_i)
+						if blue < 0 or blue > 1:
+							print("map x: ", x, " y: ", y, " wet: ", blue," temp: ", red)
+						image.set_pixel(x, y, Color(red, 0, blue * maxWet, 1))
+						image.set_pixel(next_x, next_y, Color(red_i, 0, blue_i, 1))
 	image.unlock()
 	heightImage.unlock()
