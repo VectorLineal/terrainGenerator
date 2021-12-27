@@ -23,14 +23,13 @@ var minTemperature = 0
 var wetPoints = 10
 var maxWet = 1.0
 var maxWetRange = 0.6
-var climate_iterations = 50
+var climate_iterations = 10
 
 #variables sobre algoritmos físicos
 var talus_angle = 20 / self.size
-var iterations = 1
+var iterations = 5
 #modified Von Neumann neighbourhood
-var neighbourhood = [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1)]
-var fullNeighbourhood = [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1), Vector2(0, -1), Vector2(1, 0), Vector2(0, 1), Vector2(-1, 0)]
+const neighbourhood = [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1)]
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -56,12 +55,12 @@ func _ready():
 	var image = Image.new()
 	image.create(size, size, false, Image.FORMAT_RGBAF)
 	#se aplica algoritmo de refinamiento de terreno
-	#TerrainRefinement.thermal_erosion(heightImage, self.talus_angle, self.iterations, self.neighbourhood)
-	TerrainRefinement.olsen_erosion(heightImage, self.talus_angle, self.iterations, self.neighbourhood)
+	#TerrainRefinement.thermal_erosion(heightImage, self.talus_angle, self.iterations)
+	TerrainRefinement.olsen_erosion(heightImage, self.talus_angle, self.iterations)
 	#se generan puntos iniciales de humedad a partir de los cuales se distribuirá la humedad por todo el terreno
 	var wetConcentrations = Weather.generate_Wet_points(image, wetPoints, maxWet, maxWetRange, rng)
 	#se distribuyen humedad y temperatura, además se calcula mapa de inclinaciones
-	Weather.distribute_wet_temp(image, heightImage, minTemperature, maxTemperature, seaLevel, maxWet, wetPoints, wetConcentrations, fullNeighbourhood)
+	Weather.distribute_wet_temp(image, heightImage, minTemperature, maxTemperature, seaLevel, maxWet, wetPoints, wetConcentrations)
 	#se obtienen medidas de calidad del terreno generado
 	self.slope_score = MathUtils.calculate_scores(image)
 	print("slope mean = ", slope_score.x, ", slope standard desviation = ", slope_score.y, ", erosion score = ", slope_score.z)

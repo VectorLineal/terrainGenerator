@@ -10,7 +10,7 @@ static func generate_Wet_points(image: Image ,wet_points: int, maxWet: float, ma
 	return wetConcentrations
 
 #se crea mapa de temperatura y humedad además de calcular inclinación media en cada casilla
-static func distribute_wet_temp(image: Image, heightImage: Image, minTemperature: float, maxTemperature: float, seaLevel: float, maxWet: float, wetPoints: int, wetConcentrations: Array, fullNeighbourhood: Array):
+static func distribute_wet_temp(image: Image, heightImage: Image, minTemperature: float, maxTemperature: float, seaLevel: float, maxWet: float, wetPoints: int, wetConcentrations: Array):
 	image.lock()
 	heightImage.lock()
 	#Se crea mapa de temperatura (R), inclinación (G), humedad (B)
@@ -20,9 +20,9 @@ static func distribute_wet_temp(image: Image, heightImage: Image, minTemperature
 			var height = heightImage.get_pixel(x, y).r
 			var slope_total = 0
 			var neighbours_visited = 0
-			for i in fullNeighbourhood.size():
-					var next_x = x + fullNeighbourhood[i].x
-					var next_y = y + fullNeighbourhood[i].y
+			for i in MathUtils.fullNeighbourhood.size():
+					var next_x = x + MathUtils.fullNeighbourhood[i].x
+					var next_y = y + MathUtils.fullNeighbourhood[i].y
 					#El vecindario debe quedar dentro de los constraints del mapa de alturas
 					if next_x >= 0 and next_x < heightImage.get_width() and next_y >= 0 and next_y < heightImage.get_height():
 						var height_i = heightImage.get_pixel(next_x, next_y).r

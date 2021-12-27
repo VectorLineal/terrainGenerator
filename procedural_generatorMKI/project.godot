@@ -10,6 +10,16 @@ config_version=4
 
 _global_script_classes=[ {
 "base": "Reference",
+"class": "Agent",
+"language": "GDScript",
+"path": "res://Agents/Agent.gd"
+}, {
+"base": "Agent",
+"class": "CoastAgent",
+"language": "GDScript",
+"path": "res://Agents/CoastAgent.gd"
+}, {
+"base": "Reference",
 "class": "MathUtils",
 "language": "GDScript",
 "path": "res://math_utils.gd"
@@ -30,6 +40,8 @@ _global_script_classes=[ {
 "path": "res://Weather.gd"
 } ]
 _global_script_class_icons={
+"Agent": "",
+"CoastAgent": "",
 "MathUtils": "",
 "TerrainRefinement": "",
 "Voronoi": "",

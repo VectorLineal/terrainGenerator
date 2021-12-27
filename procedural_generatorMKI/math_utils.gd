@@ -1,5 +1,9 @@
 class_name MathUtils
 
+#modified Von Neumann neighbourhood
+const neighbourhood = [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1)]
+const fullNeighbourhood = [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1), Vector2(0, -1), Vector2(1, 0), Vector2(0, 1), Vector2(-1, 0)]
+
 #interpola el valor v de iMin, iMax en el dominio de oMin, oMax
 static func remap(iMin, iMax, oMin, oMax, v):
 	var t = inverse_lerp(iMin, iMax, v)
@@ -8,6 +12,10 @@ static func remap(iMin, iMax, oMin, oMax, v):
 #distancia cuadrada entre 2 puntos
 static func sqr_dst(in_x, in_y, fin_x, fin_y):
 	return pow(fin_x - in_x, 2) + pow(fin_y - in_y, 2)
+	
+static func generate_random_normal(random_gen: RandomNumberGenerator):
+	var v = Vector2(random_gen.randf(), random_gen.randf())
+	return v.normalized()
 
 #calcula las medidas estadísticas del mapa de inclinaciones, promedio, desviación estándar y puntaje de erosión.
 static func calculate_scores(image: Image):

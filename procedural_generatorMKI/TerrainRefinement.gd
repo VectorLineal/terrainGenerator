@@ -1,6 +1,6 @@
 class_name TerrainRefinement
 
-static func thermal_erosion(heightImage: Image, talus_angle: float, iterations: int, neighbourhood):
+static func thermal_erosion(heightImage: Image, talus_angle: float, iterations: int):
 	heightImage.lock()
 	for iter in iterations:
 		for y in heightImage.get_height():
@@ -11,9 +11,9 @@ static func thermal_erosion(heightImage: Image, talus_angle: float, iterations: 
 				var lowest_height = 1
 				var lowest_index = -1
 				#se recorre vendiaro de Neumann
-				for i in neighbourhood.size():
-					var next_x = x + neighbourhood[i].x
-					var next_y = y + neighbourhood[i].y
+				for i in MathUtils.neighbourhood.size():
+					var next_x = x + MathUtils.neighbourhood[i].x
+					var next_y = y + MathUtils.neighbourhood[i].y
 					#El vecindario debe quedar dentro de los constraints del mapa de alturas
 					if next_x >= 0 and next_x < heightImage.get_width() and next_y >= 0 and next_y < heightImage.get_height():
 						var height_i = heightImage.get_pixel(next_x, next_y).r
@@ -28,10 +28,10 @@ static func thermal_erosion(heightImage: Image, talus_angle: float, iterations: 
 					var new_height = height - slope_max / 2
 					heightImage.set_pixel(x, y, Color(new_height, new_height, new_height, 1))
 					new_height = lowest_height + slope_max / 2
-					heightImage.set_pixel(x + neighbourhood[lowest_index].x, y + neighbourhood[lowest_index].y, Color(new_height, new_height, new_height, 1))
+					heightImage.set_pixel(x + MathUtils.neighbourhood[lowest_index].x, y + MathUtils.neighbourhood[lowest_index].y, Color(new_height, new_height, new_height, 1))
 	heightImage.unlock()
 
-static func olsen_erosion(heightImage: Image, talus_angle: float, iterations: int, neighbourhood):
+static func olsen_erosion(heightImage: Image, talus_angle: float, iterations: int):
 	#versión modificada de erosion termal del paper de Jacob Olsen
 	heightImage.lock()
 	for iter in iterations:
@@ -43,9 +43,9 @@ static func olsen_erosion(heightImage: Image, talus_angle: float, iterations: in
 				var lowest_height = 1
 				var lowest_index = -1
 				#se recorre vendiaro de Neumann
-				for i in neighbourhood.size():
-					var next_x = x + neighbourhood[i].x
-					var next_y = y + neighbourhood[i].y
+				for i in MathUtils.neighbourhood.size():
+					var next_x = x + MathUtils.neighbourhood[i].x
+					var next_y = y + MathUtils.neighbourhood[i].y
 					#El vecindario debe quedar dentro de los constraints del mapa de alturas
 					if next_x >= 0 and next_x < heightImage.get_width() and next_y >= 0 and next_y < heightImage.get_height():
 						var height_i = heightImage.get_pixel(next_x, next_y).r
@@ -60,5 +60,5 @@ static func olsen_erosion(heightImage: Image, talus_angle: float, iterations: in
 						var new_height = height - slope_max / 2
 						heightImage.set_pixel(x, y, Color(new_height, new_height, new_height, 1))
 						new_height = lowest_height + slope_max / 2
-						heightImage.set_pixel(x + neighbourhood[lowest_index].x, y + neighbourhood[lowest_index].y, Color(new_height, new_height, new_height, 1))
+						heightImage.set_pixel(x + MathUtils.neighbourhood[lowest_index].x, y + MathUtils.neighbourhood[lowest_index].y, Color(new_height, new_height, new_height, 1))
 	heightImage.unlock()

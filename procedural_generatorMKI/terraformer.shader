@@ -180,49 +180,42 @@ void fragment(){
 		if(grassMultiplier > 1.0) grassMultiplier = 1.0;
 		biomeColor = grassMultiplier * greenlandC;
 	}else if(isDotInSquare(forest, wet, temperature)){
-		if(textureShaperV2.x >= 0.3){
-			grassMultiplier = ((hash(UV) * fbm(UV, 0.75, 1280.0)) + clip);
-			if(grassMultiplier > 1.0) grassMultiplier = 1.0;
-			biomeColor = grassMultiplier * forestC;
-		}else{
-			biomeColor = grassMultiplier * wastelandC;
-		}
+		float filter = step(textureShaperV2.x, 0.3);
+		grassMultiplier = ((hash(UV) * fbm(UV, 0.75, 1280.0)) + clip);
+		if(grassMultiplier > 1.0) grassMultiplier = 1.0;
+		vec3 mainColor = grassMultiplier * forestC;
+		vec3 secColor = grassMultiplier * wastelandC;
+		biomeColor = (1.0 - filter) * mainColor + filter * secColor;
 	}else if(isDotInSquare(forestW, wet, temperature)){
-		if(textureShaperV2.x >= 0.3){
-			grassMultiplier = ((hash(UV) * fbm(UV, 0.75, 1280.0)) + clip);
-			if(grassMultiplier > 1.0) grassMultiplier = 1.0;
-			biomeColor = grassMultiplier * forestC;
-		}else{
-			grassMultiplier = ((hash(UV) * fbm(UV, 0.75, 1280.0)) + clip);
-			if(grassMultiplier > 1.0) grassMultiplier = 1.0;
-			biomeColor = grassMultiplier * greenlandC;
-		}
+		float filter = step(textureShaperV2.x, 0.3);
+		grassMultiplier = ((hash(UV) * fbm(UV, 0.75, 1280.0)) + clip);
+		if(grassMultiplier > 1.0) grassMultiplier = 1.0;
+		vec3 mainColor = grassMultiplier * forestC;
+		vec3 secColor = grassMultiplier * greenlandC;
+		biomeColor = (1.0 - filter) * mainColor + filter * secColor;
 	}else if(isDotInSquare(plains, wet, temperature)){
-		if(textureShaperV2.x <= 0.3){
-			grassMultiplier = ((hash(UV) * fbm(UV, 0.75, 1280.0)) + clip);
-			if(grassMultiplier > 1.0) grassMultiplier = 1.0;
-			biomeColor = grassMultiplier * greenlandC;
-		}else{
-			biomeColor = grassMultiplier * wastelandC;
-		}
+		float filter = step(textureShaperV2.x, 0.3);
+		grassMultiplier = ((hash(UV) * fbm(UV, 0.75, 1280.0)) + clip);
+		if(grassMultiplier > 1.0) grassMultiplier = 1.0;
+		vec3 mainColor = grassMultiplier * greenlandC;
+		vec3 secColor = grassMultiplier * wastelandC;
+		biomeColor = (1.0 - filter) * mainColor + filter * secColor;
 	}else if(isDotInSquare(jungle, wet, temperature)){
-		if(textureShaperV2.x >= 0.2){
-			grassMultiplier = ((hash(UV) * fbm(UV, 0.75, 1024.0)) + clip);
-			if(grassMultiplier > 1.0) grassMultiplier = 1.0;
-			biomeColor = grassMultiplier * jungleC;
-		}else{
-			biomeColor = grassMultiplier * wastelandC;
-		}
+		float filter = step(textureShaperV2.x, 0.3);
+		grassMultiplier = ((hash(UV) * fbm(UV, 0.75, 1024.0)) + clip);
+		if(grassMultiplier > 1.0) grassMultiplier = 1.0;
+		vec3 mainColor = grassMultiplier * jungleC;
+		vec3 secColor = grassMultiplier * wastelandC;
+		biomeColor = (1.0 - filter) * mainColor + filter * secColor;
 	}else if(isDotInSquare(jungleW, wet, temperature)){
-		if(textureShaperV2.x >= 0.2){
-			grassMultiplier = ((hash(UV) * fbm(UV, 0.75, 1024.0)) + clip);
-			if(grassMultiplier > 1.0) grassMultiplier = 1.0;
-			biomeColor = grassMultiplier * jungleC;
-		}else{
-			grassMultiplier = ((hash(UV) * fbm(UV, 0.75, 1792.0)) + clip);
-			if(grassMultiplier > 1.0) grassMultiplier = 1.0;
-			biomeColor = grassMultiplier * greenlandC;
-		}
+		float filter = step(textureShaperV2.x, 0.2);
+		grassMultiplier = ((hash(UV) * fbm(UV, 0.75, 1024.0)) + clip);
+		if(grassMultiplier > 1.0) grassMultiplier = 1.0;
+		vec3 mainColor = grassMultiplier * jungleC;
+		grassMultiplier = ((hash(UV) * fbm(UV, 0.75, 1792.0)) + clip);
+		if(grassMultiplier > 1.0) grassMultiplier = 1.0;
+		vec3 secColor = grassMultiplier * greenlandC;
+		biomeColor = (1.0 - filter) * mainColor + filter * secColor;
 	}else{ // en caso que no se coinsida con un bioma anteriormente listado, se tomará como bioma yermo
 		biomeColor = grassMultiplier * wastelandC;
 	}
