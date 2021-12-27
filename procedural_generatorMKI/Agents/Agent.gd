@@ -16,13 +16,14 @@ func _init(tokens: int, limit: int):
 func initialize():
 	pass
 
-func run(heightImage: Image, random_gen: RandomNumberGenerator):
+func run(sea_level: float, heightImage: Image, random_gen: RandomNumberGenerator):
 	if self.status != DEAD:
 		self.status = ACTIVE
 		var percept = { #percepción del agente sobre su entorno
 			"map": heightImage, 
 			"size": heightImage.get_size(), 
-			"rng": random_gen
+			"rng": random_gen,
+			"sea": sea_level
 		}
 		
 		if percept == null:

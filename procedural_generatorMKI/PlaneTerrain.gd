@@ -17,7 +17,7 @@ var lacunarity = 2.0
 var slope_score
 
 #Variables sobre la generación climática
-var seaLevel = 0
+var seaLevel = 0.1
 var maxTemperature = 30
 var minTemperature = 0
 var wetPoints = 10

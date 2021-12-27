@@ -14,7 +14,7 @@ static func sqr_dst(in_x, in_y, fin_x, fin_y):
 	return pow(fin_x - in_x, 2) + pow(fin_y - in_y, 2)
 	
 static func generate_random_normal(random_gen: RandomNumberGenerator):
-	var v = Vector2(random_gen.randf(), random_gen.randf())
+	var v = Vector2(random_gen.randf_range(-1, 1), random_gen.randf_range(-1, 1))
 	return v.normalized()
 
 #calcula las medidas estadísticas del mapa de inclinaciones, promedio, desviación estándar y puntaje de erosión.
@@ -61,7 +61,7 @@ static func angle_to_grid(v: Vector2): #vector con componentes entre [-1, 1]
 		return [-1, 0]
 
 static func vec_to_grid(origin: Vector2, v: Vector2, size: Vector2, maxRange: float): #vector v con componentes entre [-1, 1]
-	var ang = v.angle()
+	#var ang = v.angle()
 	#se calculan los equivalentes de los vectores en el mapa
 	var deltaX = floor(lerp(0, (size.x - 1) * maxRange, abs(v.x)))
 	var deltaY = floor(lerp(0, (size.y - 1) * maxRange, abs(v.y)))
