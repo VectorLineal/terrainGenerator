@@ -1,7 +1,5 @@
 extends MeshInstance
 
-#var Voronoi = load("Voronio.gd")
-
 #variables sobre generación de terreno base
 var heightMap
 var biomeMap
@@ -23,13 +21,20 @@ var minTemperature = 0
 var wetPoints = 10
 var maxWet = 1.0
 var maxWetRange = 0.6
-var climate_iterations = 10
+var climate_iterations = 0
 
 #variables sobre algoritmos físicos
 var talus_angle = 20 / self.size
 var iterations = 5
-#modified Von Neumann neighbourhood
-const neighbourhood = [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1)]
+
+#variables sobre agentes
+var partitions = 9
+var landmass = 0.4
+var smooth_tokens = 1000
+var beach_tokens = 1000
+var mountain_tokens = 1000
+var river_tokens = 1000
+var agent_manager
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -44,19 +49,31 @@ func _ready():
 	noise.persistence = self.persistence
 	noise.lacunarity = self.lacunarity
 	self.heightMap = ImageTexture.new()
-	var heightImage = noise.get_image(size, size)
+	var heightImage = Image.new()
+	
+	#se aplica ruido simplex para crear mapa de altura
+	##heightImage = noise.get_image(size, size)
 	#var heightImage = Voronoi.generate_voronoi_diagram(Vector2(512, 512), 24, 1.0, self.rng)
 	#se aplica mapa de Voronoi
-	Voronoi.apply_voronoi_diagram(heightImage, 24, 1, 0.25, 0.0, rng)
+	##Voronoi.apply_voronoi_diagram(heightImage, 24, 1, 0.25, 0.0, rng)
+	
+	heightImage.create(size, size, false, Image.FORMAT_RGBAF)
+	#agente de costa
+	var limit = int((self.landmass * size * size) / (pow(2.0, self.partitions))) + 1
+	var coast_tokens = floor(self.landmass * size * size)
+	agent_manager = AgentManager.new(limit, coast_tokens, self.smooth_tokens, self.beach_tokens, self.mountain_tokens, self.river_tokens)
+	agent_manager.start_coast_agents(self.seaLevel, heightImage, rng)
+	#agent_manager.run_coast_agents(self.seaLevel, heightImage, rng)
 	
 	#Paso de ajuste de terreno y simulación usando algún métodos físicos (erosión física y termal).
 	#se genera mapa de biomas, contiene humedad y temperatura
 	self.biomeMap = ImageTexture.new()
 	var image = Image.new()
 	image.create(size, size, false, Image.FORMAT_RGBAF)
+	
 	#se aplica algoritmo de refinamiento de terreno
 	#TerrainRefinement.thermal_erosion(heightImage, self.talus_angle, self.iterations)
-	TerrainRefinement.olsen_erosion(heightImage, self.talus_angle, self.iterations)
+	##TerrainRefinement.olsen_erosion(heightImage, self.talus_angle, self.iterations)
 	#se generan puntos iniciales de humedad a partir de los cuales se distribuirá la humedad por todo el terreno
 	var wetConcentrations = Weather.generate_Wet_points(image, wetPoints, maxWet, maxWetRange, rng)
 	#se distribuyen humedad y temperatura, además se calcula mapa de inclinaciones

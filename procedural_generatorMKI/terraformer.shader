@@ -78,7 +78,7 @@ void vertex() {
 	
 	height *= height_scale;
 	VERTEX.y += height;
-  	//COLOR.xyz = texture(biome_map, UV).xxx;
+  	//COLOR.xyz = texture(map, UV).xxx;
 	vec2 e = vec2(0.01, 0);
 	vec3 normal = normalize(vec3(texture(map, UV - e).x - texture(map, UV + e).x, 2.0 * e.x, texture(map, UV - e.yx).x - texture(map, UV + e.yx).x));
 	NORMAL = normal;
@@ -221,5 +221,6 @@ void fragment(){
 	}
 	//biomeColor = textureShaperV2;
 	ALBEDO = biomeColor;
+	//ALBEDO = COLOR.xyz;
 	//ALBEDO = vec3(0.0, 0.0, texture(biome_map, UV).z);
 }

@@ -1,4 +1,4 @@
-class_name Agent
+class_name SoftwareAgent
 
 const ACTIVE = 1
 const ABORT = 0
@@ -6,34 +6,34 @@ const DEAD = -1
 
 var status: int
 var tokens: int
-var limit: int
 
-func _init(tokens: int, limit: int):
+func _init(tokens: int):
 	self.status = self.ACTIVE
 	self.tokens = tokens
-	self.limit = limit
 
 func initialize():
 	pass
 
-func run(sea_level: float, heightImage: Image, random_gen: RandomNumberGenerator):
+func run(list: Array, sea_level: float, heightImage: Image, random_gen: RandomNumberGenerator):
 	if self.status != DEAD:
-		self.status = ACTIVE
+		live()
 		var percept = { #percepción del agente sobre su entorno
 			"map": heightImage, 
 			"size": heightImage.get_size(), 
 			"rng": random_gen,
-			"sea": sea_level
+			"sea": sea_level,
+			"list": list
 		}
 		
 		if percept == null:
-			self.status = ABORT
+			pause()
 		#si todo está en orden, se ejecuta la acción
 		if self.status != ABORT:
 			act(percept)
 
 func act(perception): #esta función será sobreescrita por cada agente que hereda
-	pass
+	if self.tokens <= 0:
+		die()
 
 func die():
 	self.status = DEAD

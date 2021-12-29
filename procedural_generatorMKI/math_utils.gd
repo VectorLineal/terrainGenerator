@@ -13,10 +13,31 @@ static func remap(iMin, iMax, oMin, oMax, v):
 static func sqr_dst(in_x, in_y, fin_x, fin_y):
 	return pow(fin_x - in_x, 2) + pow(fin_y - in_y, 2)
 	
+#genera vector unitario aleatorio con componentes entre [-1, 1]
 static func generate_random_normal(random_gen: RandomNumberGenerator):
 	var v = Vector2(random_gen.randf_range(-1, 1), random_gen.randf_range(-1, 1))
 	return v.normalized()
 
+#calcula el punto del borde más cercano al punto dado
+static func get_closest_border(point: Vector2, size: Vector2):
+	var x_distance = min(point.x, size.x - 1 - point.x)
+	var y_distance = min(point.y, size.y - 1 - point.y)
+	var edge = Vector2(0, 0)
+	if x_distance >= y_distance:
+		edge.x = point.x
+		if y_distance == point.y:
+			edge.y = 0
+		else:
+			edge.y = size.y - 1
+	else:
+		edge.y = point.y
+		if x_distance == point.x:
+			edge.x = 0
+		else:
+			edge.x = size.x - 1
+	#print("point: ", point, "distances x: ", x_distance, ", y: ", y_distance, ", edge: ", edge)
+	return edge
+	
 #calcula las medidas estadísticas del mapa de inclinaciones, promedio, desviación estándar y puntaje de erosión.
 static func calculate_scores(image: Image):
 	var acumulator = 0
