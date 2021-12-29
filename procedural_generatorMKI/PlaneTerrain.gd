@@ -28,9 +28,11 @@ var talus_angle = 20 / self.size
 var iterations = 5
 
 #variables sobre agentes
-var partitions = 9
+var detail = 8
 var landmass = 0.4
-var smooth_tokens = 1000
+var smooth_tokens = 800
+var smooth_amount = 15
+var smooth_refresh_times = 4
 var beach_tokens = 1000
 var mountain_tokens = 1000
 var river_tokens = 1000
@@ -59,10 +61,12 @@ func _ready():
 	
 	heightImage.create(size, size, false, Image.FORMAT_RGBAF)
 	#agente de costa
-	var limit = int((self.landmass * size * size) / (pow(2.0, self.partitions))) + 1
+	var limit = int((self.landmass * size * size) / (pow(2.0, self.detail))) + 1
 	var coast_tokens = floor(self.landmass * size * size)
-	agent_manager = AgentManager.new(limit, coast_tokens, self.smooth_tokens, self.beach_tokens, self.mountain_tokens, self.river_tokens)
+	var smooth_refresh_rate = int(self.smooth_tokens / smooth_refresh_times)
+	agent_manager = AgentManager.new(limit, coast_tokens, self.smooth_tokens, self.smooth_amount, smooth_refresh_rate, self.beach_tokens, self.mountain_tokens, self.river_tokens)
 	agent_manager.start_coast_agents(self.seaLevel, heightImage, rng)
+	agent_manager.start_smooth_agents(self.seaLevel, heightImage, rng)
 	#agent_manager.run_coast_agents(self.seaLevel, heightImage, rng)
 	
 	#Paso de ajuste de terreno y simulación usando algún métodos físicos (erosión física y termal).

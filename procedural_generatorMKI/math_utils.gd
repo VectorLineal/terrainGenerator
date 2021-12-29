@@ -38,6 +38,13 @@ static func get_closest_border(point: Vector2, size: Vector2):
 	#print("point: ", point, "distances x: ", x_distance, ", y: ", y_distance, ", edge: ", edge)
 	return edge
 	
+#retorna el índice de un vector si se encuentra en el arreglo, de lo contrario retorna -1
+static func get_element_index(v: Vector2, list: Array):
+	for i in list.size():
+		if list[i].x == v.x && list[i].y == v.y:
+			return i
+	return -1
+	
 #calcula las medidas estadísticas del mapa de inclinaciones, promedio, desviación estándar y puntaje de erosión.
 static func calculate_scores(image: Image):
 	var acumulator = 0
