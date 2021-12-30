@@ -2,7 +2,6 @@ extends SoftwareAgent
 
 class_name CoastAgent
 
-var seed_point: Vector2
 var direction: Vector2
 var attractor: Vector2
 var repulsor: Vector2
@@ -122,7 +121,7 @@ func get_next_coast(point: Vector2, sea_level: float, heightImage: Image):
 				var edge = MathUtils.sqr_dst(next_x, next_y, edge_map.x, edge_map.y)
 				var de = edge
 				var da = MathUtils.sqr_dst(next_x, next_y, self.attractor.x, self.attractor.y)
-				var next_score = dr + 3 * de - da
+				var next_score = dr + 8 * de - da
 				#se debe tener el mejor puntaje y el punto que apunta
 				if score < next_score:
 					score = next_score

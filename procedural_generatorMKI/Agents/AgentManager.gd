@@ -15,6 +15,8 @@ var beach: int
 var beach_agents: Array = []
 #mountain agents
 var mountain: int
+var mountain_amount: int
+var mountain_refresh: int
 var mountain_agents: Array = []
 #river agents
 var river: int
@@ -22,14 +24,20 @@ var river_agents: Array = []
 #auxiliars
 var dynamic_filled_list: Array = []
 
-func _init(limit_a: int, coast_t: int, smooth_t: int, smooth_amount: int, smooth_refresh: int, beach_t: int, mountain_t: int, river_t: int):
+func _init(limit_a: int, coast_t: int, smooth_t: int, smooth_amount: int, smooth_refresh: int, beach_t: int, mountain_t: int, mountain_a: int, mountain_r: int, river_t: int):
 	self.coast_limit = limit_a
 	self.coast = coast_t
+	
 	self.smooth = smooth_t
 	self.smooth_amount = smooth_amount
 	self.smooth_refresh = smooth_refresh
+	
 	self.beach = beach_t
+	
 	self.mountain = mountain_t
+	self.mountain_amount = mountain_a
+	self.mountain_refresh = mountain_r
+	
 	self.river = river_t
 	
 func start_coast_agents(sea_level: float, heightImage: Image, random_gen: RandomNumberGenerator):
@@ -59,3 +67,15 @@ func start_smooth_agents(sea_level: float, heightImage: Image, random_gen: Rando
 		self.smooth_agents.append(smoother)
 		smoother.run(self.dynamic_filled_list, sea_level, heightImage, random_gen)
 		print("running ", i, " smooth agent: ", smoother._to_string())
+
+func run_smooth_agents(sea_level: float, heightImage: Image, random_gen: RandomNumberGenerator):
+	for i in self.smooth_agents.size():
+		self.smooth_agents[i].run(self.dynamic_filled_list, sea_level, heightImage, random_gen)
+
+func start_mountain_agents(width: int, max_mountain_h: float, min_mountain_h: float, mountain_s: float, mountain_p: float, mountain_v: float, sea_level: float, heightImage: Image, random_gen: RandomNumberGenerator):
+	print("mountain agents amount: ", self.mountain_amount, " with ", self.mountain, " tokens each")
+	for i in self.mountain_amount:
+		var riser = MountainAgent.new(self.mountain, self.mountain_refresh, max_mountain_h, min_mountain_h, mountain_s, width, mountain_p, mountain_v, self.dynamic_filled_list, sea_level, heightImage, random_gen)
+		self.mountain_agents.append(riser)
+		riser.run(self.dynamic_filled_list, sea_level, heightImage, random_gen)
+		print("running ", i, " mountain agent")

@@ -6,6 +6,7 @@ const DEAD = -1
 
 var status: int
 var tokens: int
+var seed_point: Vector2
 
 func _init(tokens: int):
 	self.status = self.ACTIVE

@@ -4,6 +4,17 @@ class_name MathUtils
 const neighbourhood = [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1)]
 const fullNeighbourhood = [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1), Vector2(0, -1), Vector2(1, 0), Vector2(0, 1), Vector2(-1, 0)]
 
+#genera un booleano aleatorio
+static func random_bool(random_gen: RandomNumberGenerator):
+	return random_gen.randi_range (0, 1) == 0
+
+#genera -1 o 1 aleatoriamente
+static func random_sign(random_gen: RandomNumberGenerator):
+	if random_bool(random_gen):
+		return 1
+	else:
+		return -1
+
 #interpola el valor v de iMin, iMax en el dominio de oMin, oMax
 static func remap(iMin, iMax, oMin, oMax, v):
 	var t = inverse_lerp(iMin, iMax, v)
@@ -87,6 +98,62 @@ static func angle_to_grid(v: Vector2): #vector con componentes entre [-1, 1]
 		return [-1, 1]
 	else:
 		return [-1, 0]
+
+#dada una dirección de cambio en una grilla, elige sus 2 direcciones perpendiculares
+static func get_perpendicular_grids(direction: Array): #arreglo de 2 componentes
+	var results: Array = [[0, 0], [0, 0]]
+	if direction[0] == 0:
+		results[0] = [-1, 0]
+		results[1] = [1, 0]
+	elif direction[1] == 0:
+		results[0] = [0, -1]
+		results[1] = [0, 1]
+	elif direction[0] == direction[1]:
+		results[0] = [1, -1]
+		results[1] = [-1, 1]
+	else:
+		results[0] = [1, 1]
+		results[1] = [-1, -1]
+	return results
+
+#retorna la coordenada en el vecindario al rotar 45° por izquierda o derecha
+static func rotate_45_grid(direction: Array, status: int):
+	#status puede ser -1, 0, 1, status 0 implica ninguna rotación
+	if status == 0:
+		return direction
+	elif status < -1:
+		status = -1
+	elif status > 1:
+		status = 1
+	
+	var results: Array = [0, 0]
+	if direction[0] == 0 && direction[1] == -1:
+		results[0] = status
+		results[1] = direction[1]
+	elif direction[0] == 0 && direction[1] == 1:
+		results[0] = -status
+		results[1] = direction[1]
+	elif direction[1] == 0 && direction[0] == 1:
+		results[0] = direction[0]
+		results[1] = status
+	elif direction[1] == 0 && direction[0] == -1:
+		results[0] = direction[0]
+		results[1] = -status
+	elif direction[0] == direction[1]:
+		if status == -1:
+			results[0] = direction[0]
+			results[1] = 0
+		else:
+			results[0] = 0
+			results[1] = direction[1]
+	else:
+		if status == -1:
+			results[0] = 0
+			results[1] = direction[1]
+		else:
+			results[0] = direction[0]
+			results[1] = 0
+	return results
 
 static func vec_to_grid(origin: Vector2, v: Vector2, size: Vector2, maxRange: float): #vector v con componentes entre [-1, 1]
 	#var ang = v.angle()

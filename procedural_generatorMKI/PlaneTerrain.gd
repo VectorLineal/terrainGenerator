@@ -29,12 +29,14 @@ var iterations = 5
 
 #variables sobre agentes
 var detail = 8
-var landmass = 0.4
-var smooth_tokens = 800
+var landmass = 0.3
+var smooth_tokens = 750
 var smooth_amount = 15
 var smooth_refresh_times = 4
 var beach_tokens = 1000
-var mountain_tokens = 1000
+var mountain_tokens = 250
+var mountain_amount = 2
+var mountain_refresh_times = 8
 var river_tokens = 1000
 var agent_manager
 
@@ -64,10 +66,18 @@ func _ready():
 	var limit = int((self.landmass * size * size) / (pow(2.0, self.detail))) + 1
 	var coast_tokens = floor(self.landmass * size * size)
 	var smooth_refresh_rate = int(self.smooth_tokens / smooth_refresh_times)
-	agent_manager = AgentManager.new(limit, coast_tokens, self.smooth_tokens, self.smooth_amount, smooth_refresh_rate, self.beach_tokens, self.mountain_tokens, self.river_tokens)
+	var mountain_refresh_rate = int(self.mountain_tokens / mountain_refresh_times)
+	agent_manager = AgentManager.new(limit, coast_tokens, self.smooth_tokens, self.smooth_amount, smooth_refresh_rate, self.beach_tokens, self.mountain_tokens, self.mountain_amount, mountain_refresh_rate, self.river_tokens)
 	agent_manager.start_coast_agents(self.seaLevel, heightImage, rng)
+	#width: int, max_mountain_h: float, min_mountain_h: float, mountain_s: float, mountain_p: float, mountain_v: float
+	var mountain_degradation_rate = 1.5
+	agent_manager.start_mountain_agents(40, 0.28, 0.16, 0.007 * mountain_degradation_rate, 0.2, 0.00001, self.seaLevel, heightImage, rng)
+	mountain_degradation_rate = 0.8
+	agent_manager.start_mountain_agents(60, 0.4, 0.2, 0.007 * mountain_degradation_rate, 0.12, 0.0001, self.seaLevel, heightImage, rng)
+	mountain_degradation_rate = 0.5
+	agent_manager.start_mountain_agents(80, 0.7, 0.5, 0.009 * mountain_degradation_rate, 0.08, 0.001, self.seaLevel, heightImage, rng)
 	agent_manager.start_smooth_agents(self.seaLevel, heightImage, rng)
-	#agent_manager.run_coast_agents(self.seaLevel, heightImage, rng)
+	#agent_manager.run_smooth_agents(self.seaLevel, heightImage, rng)
 	
 	#Paso de ajuste de terreno y simulación usando algún métodos físicos (erosión física y termal).
 	#se genera mapa de biomas, contiene humedad y temperatura
