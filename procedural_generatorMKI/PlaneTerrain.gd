@@ -28,13 +28,13 @@ var talus_angle = 20 / self.size
 var iterations = 5
 
 #variables sobre agentes
-var detail = 8
+var detail = 9
 var landmass = 0.3
 var smooth_tokens = 750
-var smooth_amount = 15
+var smooth_amount = 16
 var smooth_refresh_times = 4
 var beach_tokens = 1000
-var mountain_tokens = 250
+var mountain_tokens = 120
 var mountain_amount = 2
 var mountain_refresh_times = 8
 var river_tokens = 1000
@@ -70,12 +70,14 @@ func _ready():
 	agent_manager = AgentManager.new(limit, coast_tokens, self.smooth_tokens, self.smooth_amount, smooth_refresh_rate, self.beach_tokens, self.mountain_tokens, self.mountain_amount, mountain_refresh_rate, self.river_tokens)
 	agent_manager.start_coast_agents(self.seaLevel, heightImage, rng)
 	#width: int, max_mountain_h: float, min_mountain_h: float, mountain_s: float, mountain_p: float, mountain_v: float
-	var mountain_degradation_rate = 1.5
-	agent_manager.start_mountain_agents(40, 0.28, 0.16, 0.007 * mountain_degradation_rate, 0.2, 0.00001, self.seaLevel, heightImage, rng)
+	var mountain_degradation_rate = 1.2
+	agent_manager.start_mountain_agents(20, 0.26, 0.2, 0.007 * mountain_degradation_rate, 0.05, 0.00001, self.seaLevel, heightImage, rng)
 	mountain_degradation_rate = 0.8
-	agent_manager.start_mountain_agents(60, 0.4, 0.2, 0.007 * mountain_degradation_rate, 0.12, 0.0001, self.seaLevel, heightImage, rng)
+	agent_manager.start_mountain_agents(30, 0.36, 0.3, 0.007 * mountain_degradation_rate, 0.02, 0.00001, self.seaLevel, heightImage, rng)
 	mountain_degradation_rate = 0.5
-	agent_manager.start_mountain_agents(80, 0.7, 0.5, 0.009 * mountain_degradation_rate, 0.08, 0.001, self.seaLevel, heightImage, rng)
+	agent_manager.start_mountain_agents(40, 0.5, 0.45, 0.009 * mountain_degradation_rate, 0.08, 0.0001, self.seaLevel, heightImage, rng)
+	mountain_degradation_rate = 1.1
+	agent_manager.start_mountain_agents(50, 0.6, 0.55, 0.006 * mountain_degradation_rate, 0.08, 0.0001, self.seaLevel, heightImage, rng)
 	agent_manager.start_smooth_agents(self.seaLevel, heightImage, rng)
 	#agent_manager.run_smooth_agents(self.seaLevel, heightImage, rng)
 	

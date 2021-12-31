@@ -39,6 +39,10 @@ func act(perception):
 			var next_direction = MathUtils.rotate_45_grid(MathUtils.angle_to_grid(self.direction), self.direction_status)
 			var perpendicular_directions = MathUtils.get_perpendicular_grids(next_direction)
 			var elevation: float #guarda el cambio de elvación inical
+			#si el punto se sale del mapa, el agente se detiene
+			if !(self.seed_point.x >= 0 and self.seed_point.x < heightImage.get_width() and self.seed_point.y >= 0 and self.seed_point.y < heightImage.get_height()):
+				print("I flushed in token ", i)
+				return
 			#se obtiene la altura actual y se asegura que no rebase 1
 			heightImage.lock()
 			var height = heightImage.get_pixel(self.seed_point.x, self.seed_point.y).r
@@ -49,19 +53,21 @@ func act(perception):
 			elif height > self.height_min && height < self.height_max:
 				next_height = rng.randf_range(height, self.height_max)
 			else:
-				print("ya soy muy alto")
-				return
+				print("too high")
+				continue
 			
 			elevation = next_height - height
 			var elevation_left: float = elevation
 			var elevation_right: float = elevation
+			var degradation_left: float = rng.randf_range(0, self.slope_degradation)
+			var degradation_right: float = rng.randf_range(0, self.slope_degradation)
 			heightImage.lock()
 			heightImage.set_pixel(self.seed_point.x, self.seed_point.y, Color(next_height, next_height, next_height, 1))
 			heightImage.unlock()
 			
 			for j in self.width:
-				elevation_left -= rng.randf_range(0, self.slope_degradation)
-				elevation_right -= rng.randf_range(0, self.slope_degradation)
+				elevation_left -= degradation_left
+				elevation_right -= degradation_right
 				var left_x = self.seed_point.x + perpendicular_directions[0][0] * (1 + j)
 				var left_y = self.seed_point.y + perpendicular_directions[0][1] * (1 + j)
 				
@@ -74,14 +80,30 @@ func act(perception):
 					heightImage.unlock()
 					next_height = height_left + elevation_left
 					#si se cumple la probabilidad de ruido, se agrega o resta la varianza
+					if rng.randf() <= self.noise_prob:
+						next_height += MathUtils.random_sign(rng) * self.variance
+					if next_height <= 1:
+						#se pone la nueva altura
+						heightImage.lock()
+						heightImage.set_pixel(left_x, left_y, Color(next_height, next_height, next_height, 1))
+						heightImage.unlock()
+						#se aplana
+						flatten(Vector2(left_x, left_y), sea, heightImage, dynamic_list)
+				if right_x >= 0 and right_x < heightImage.get_width() and right_y >= 0 and right_y < heightImage.get_height() && elevation_right > 0:
+					heightImage.lock()
+					var height_right = heightImage.get_pixel(right_x, right_y).r
+					heightImage.unlock()
+					next_height = height_right + elevation_right
+					#si se cumple la probabilidad de ruido, se agrega o resta la varianza
 					if rng.randf() >= self.noise_prob:
 						next_height += MathUtils.random_sign(rng) * self.variance
-					#se pone la nueva altura
-					heightImage.lock()
-					heightImage.set_pixel(left_x, left_y, Color(next_height, next_height, next_height, 1))
-					heightImage.unlock()
-					#se aplana
-					flatten(Vector2(left_x, left_y), sea, heightImage, dynamic_list)
+					if next_height <= 1:
+						#se pone la nueva altura
+						heightImage.lock()
+						heightImage.set_pixel(right_x, right_y, Color(next_height, next_height, next_height, 1))
+						heightImage.unlock()
+						#se aplana
+						flatten(Vector2(right_x, right_y), sea, heightImage, dynamic_list)
 			#se aplana la nueva altura
 			flatten(Vector2(self.seed_point.x, self.seed_point.y), sea, heightImage, dynamic_list)	
 			#se mueve la dirección en 45° aleatoriamente
@@ -94,7 +116,7 @@ func act(perception):
 			var next_point = Vector2(self.seed_point.x + next_direction[0], self.seed_point.y + next_direction[1])
 			var index = MathUtils.get_element_index(next_point, dynamic_list)
 			#en caso que el siguiente punto vaya a una casilla bajo el nivel del mar, se cambia la dirección
-			if index < 0:
+			if index < 0 || !(next_point.x >= 0 and next_point.x < heightImage.get_width() and next_point.y >= 0 and next_point.y < heightImage.get_height()):
 				for k in MathUtils.fullNeighbourhood.size():
 					var next_x = seed_point.x + MathUtils.fullNeighbourhood[k].x
 					var next_y = seed_point.y + MathUtils.fullNeighbourhood[k].y
@@ -123,6 +145,8 @@ func getRandomLandPointDynamic(list: Array, sea_level: float, heightImage: Image
 
 #aplana el terreno en un punto dado
 func flatten(point: Vector2, sea: float, heightImage: Image, dynamic_list: Array):
+	if point.x < 0 || point.y < 0:
+		print("fatal error at point:", point)
 	heightImage.lock()
 	var height = heightImage.get_pixel(point.x, point.y).r
 	heightImage.unlock()
@@ -141,7 +165,6 @@ func flatten(point: Vector2, sea: float, heightImage: Image, dynamic_list: Array
 			counter += 1.0
 	height = amount / counter
 	if height > 1:
-		print("nos pasamos de altura con ", height)
 		height = 1
 	heightImage.lock()
 	heightImage.set_pixel(point.x, point.y, Color(height, height, height, 1))

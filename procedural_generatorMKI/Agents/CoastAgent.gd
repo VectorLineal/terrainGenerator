@@ -121,7 +121,7 @@ func get_next_coast(point: Vector2, sea_level: float, heightImage: Image):
 				var edge = MathUtils.sqr_dst(next_x, next_y, edge_map.x, edge_map.y)
 				var de = edge
 				var da = MathUtils.sqr_dst(next_x, next_y, self.attractor.x, self.attractor.y)
-				var next_score = dr + 8 * de - da
+				var next_score = dr + 6 * de - da
 				#se debe tener el mejor puntaje y el punto que apunta
 				if score < next_score:
 					score = next_score
