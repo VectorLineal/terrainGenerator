@@ -48,7 +48,7 @@ func act(perception):
 			var next_point = get_next_coast(self.seed_point, sea, heightImage)
 			#print("next: ", next_point)
 			heightImage.lock()
-			heightImage.set_pixel(next_point.x, next_point.y, Color(sea * 1.5, sea * 1.5, sea * 1.5, 1))
+			heightImage.set_pixel(next_point.x, next_point.y, Color(sea * 1.05, sea * 1.05, sea * 1.05, 1))
 			heightImage.unlock()
 			perception["list"].append(next_point)
 			#ahora el punto base es el punto ya elevado

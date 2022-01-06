@@ -31,12 +31,14 @@ var iterations = 5
 var detail = 9
 var landmass = 0.3
 var smooth_tokens = 750
-var smooth_amount = 16
+var smooth_amount = 8
 var smooth_refresh_times = 4
 var beach_tokens = 1000
 var mountain_tokens = 120
 var mountain_amount = 2
 var mountain_refresh_times = 8
+var hill_tokens = 80
+var hill_amount = 6
 var river_tokens = 1000
 var agent_manager
 
@@ -67,19 +69,28 @@ func _ready():
 	var coast_tokens = floor(self.landmass * size * size)
 	var smooth_refresh_rate = int(self.smooth_tokens / smooth_refresh_times)
 	var mountain_refresh_rate = int(self.mountain_tokens / mountain_refresh_times)
-	agent_manager = AgentManager.new(limit, coast_tokens, self.smooth_tokens, self.smooth_amount, smooth_refresh_rate, self.beach_tokens, self.mountain_tokens, self.mountain_amount, mountain_refresh_rate, self.river_tokens)
+	agent_manager = AgentManager.new(limit, coast_tokens, self.smooth_tokens, self.smooth_amount, smooth_refresh_rate, self.beach_tokens, self.mountain_tokens, self.mountain_amount, mountain_refresh_rate, self.hill_tokens, self.hill_amount, self.river_tokens)
 	agent_manager.start_coast_agents(self.seaLevel, heightImage, rng)
-	#width: int, max_mountain_h: float, min_mountain_h: float, mountain_s: float, mountain_p: float, mountain_v: float
-	var mountain_degradation_rate = 1.2
-	agent_manager.start_mountain_agents(20, 0.26, 0.2, 0.007 * mountain_degradation_rate, 0.05, 0.00001, self.seaLevel, heightImage, rng)
-	mountain_degradation_rate = 0.8
-	agent_manager.start_mountain_agents(30, 0.36, 0.3, 0.007 * mountain_degradation_rate, 0.02, 0.00001, self.seaLevel, heightImage, rng)
-	mountain_degradation_rate = 0.5
-	agent_manager.start_mountain_agents(40, 0.5, 0.45, 0.009 * mountain_degradation_rate, 0.08, 0.0001, self.seaLevel, heightImage, rng)
-	mountain_degradation_rate = 1.1
-	agent_manager.start_mountain_agents(50, 0.6, 0.55, 0.006 * mountain_degradation_rate, 0.08, 0.0001, self.seaLevel, heightImage, rng)
 	agent_manager.start_smooth_agents(self.seaLevel, heightImage, rng)
-	#agent_manager.run_smooth_agents(self.seaLevel, heightImage, rng)
+	#hill agents
+	var mountain_degradation_rate = 0.5
+	agent_manager.start_hill_agents(20, 0.19, 0.16, 0.007 * mountain_degradation_rate, 0.00001, self.seaLevel, heightImage, rng)
+	#mountain_degradation_rate = 0.8
+	agent_manager.start_hill_agents(30, 0.22, 0.19, 0.0065 * mountain_degradation_rate, 0.00001, self.seaLevel, heightImage, rng)
+	#mountain_degradation_rate = 0.5
+	agent_manager.start_hill_agents(40, 0.25, 0.22, 0.006 * mountain_degradation_rate, 0.00001, self.seaLevel, heightImage, rng)
+	
+	#mountain agents
+	mountain_degradation_rate = 0.75
+	agent_manager.start_mountain_agents(20, 0.26, 0.24, 0.007 * mountain_degradation_rate, 0.0001, self.seaLevel, heightImage, rng)
+	#mountain_degradation_rate = 0.8
+	agent_manager.start_mountain_agents(30, 0.36, 0.34, 0.007 * mountain_degradation_rate, 0.0001, self.seaLevel, heightImage, rng)
+	#mountain_degradation_rate = 0.5
+	agent_manager.start_mountain_agents(40, 0.5, 0.48, 0.009 * mountain_degradation_rate, 0.0001, self.seaLevel, heightImage, rng)
+	#mountain_degradation_rate = 1.1
+	agent_manager.start_mountain_agents(50, 0.6, 0.58, 0.006 * mountain_degradation_rate, 0.0001, self.seaLevel, heightImage, rng)
+	#se aplana todo el mapa para hacerlo menos caótico
+	TerrainRefinement.flatten_map(heightImage)
 	
 	#Paso de ajuste de terreno y simulación usando algún métodos físicos (erosión física y termal).
 	#se genera mapa de biomas, contiene humedad y temperatura
@@ -99,12 +110,13 @@ func _ready():
 	print("slope mean = ", slope_score.x, ", slope standard desviation = ", slope_score.y, ", erosion score = ", slope_score.z)
 	#se aplica campo vetorial de vientos al mapa de clima para simular precipitaciones
 	Weather.simulate_precipitations(image, heightImage, climate_iterations, maxWet, 2, 0.15, 0.02, self.rng)
-	
+	#se pinta el mar color arena
+	Weather.paint_sea(heightImage, image, seaLevel)
 	#se pasan variables uniformes al shader
 	self.heightMap.create_from_image(heightImage)
 	#print("biome ", heightMap.get_data().get_height(), heightMap.get_data().get_width())
 	self.get_surface_material(0).set_shader_param("map", heightMap)
-	self.get_surface_material(0).set_shader_param("height_scale", 0.75)
+	self.get_surface_material(0).set_shader_param("height_scale", 1.0)
 	self.biomeMap.create_from_image(image)
 	print("biome ", biomeMap.get_data().get_height(), "x", biomeMap.get_data().get_width(), ", seed: ", self.original_seed)
 	self.get_surface_material(0).set_shader_param("biome_map", biomeMap)

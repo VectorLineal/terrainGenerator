@@ -154,8 +154,9 @@ void fragment(){
 	
 	float temperature = texture(biome_map, UV).x;
 	float wet = texture(biome_map, UV).z;
+	float seaMark = texture(biome_map, UV).w;
 	vec3 biomeColor;
-	if(isDotInSquare(desert, wet, temperature)){
+	if(isDotInSquare(desert, wet, temperature) || seaMark < 0.5){
 		amplitude = 1.0;
 		frequency = 1000.0;
 		xPeriod = 60.0;

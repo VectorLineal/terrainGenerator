@@ -34,7 +34,7 @@ float waves(vec2 pos, float time){
 
 
 void vertex(){
-	VERTEX.y += waves(VERTEX.xy, TIME);
+	//VERTEX.y += waves(VERTEX.xy, TIME);
 }
 
 
@@ -73,4 +73,5 @@ void fragment(){
 	NORMALMAP = texture(normalmap, uv_movement).rgb;
 	ROUGHNESS = 0.1;
 	SPECULAR = 1f;
+	ALPHA = 0.65;
 }

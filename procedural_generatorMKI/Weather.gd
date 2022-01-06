@@ -1,5 +1,22 @@
 class_name Weather
 
+#marca los puntos debajo del nivel del mar como arena
+static func paint_sea(heightImage: Image, image: Image, sea_level: float):
+	for y in heightImage.get_height():
+		for x in heightImage.get_width():
+			heightImage.lock()
+			var height = heightImage.get_pixel(x, y).r
+			heightImage.unlock()
+			if height <= sea_level:
+				image.lock()
+				var color: Color = image.get_pixel(x, y)
+				image.unlock()
+				#el alfa representará si está debajo del nivel del mar o si es una playa
+				color.a = 0
+				image.lock()
+				image.set_pixel(x, y, color)
+				image.unlock()
+	
 #genera puntos de humedad aleatorios
 static func generate_Wet_points(image: Image ,wet_points: int, maxWet: float, maxWetRange: float, rng: RandomNumberGenerator):
 	var wetConcentrations = []

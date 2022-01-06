@@ -18,13 +18,17 @@ var mountain: int
 var mountain_amount: int
 var mountain_refresh: int
 var mountain_agents: Array = []
+#hill agents
+var hill: int
+var hill_amount: int
+var hill_agents: Array = []
 #river agents
 var river: int
 var river_agents: Array = []
 #auxiliars
 var dynamic_filled_list: Array = []
 
-func _init(limit_a: int, coast_t: int, smooth_t: int, smooth_amount: int, smooth_refresh: int, beach_t: int, mountain_t: int, mountain_a: int, mountain_r: int, river_t: int):
+func _init(limit_a: int, coast_t: int, smooth_t: int, smooth_amount: int, smooth_refresh: int, beach_t: int, mountain_t: int, mountain_a: int, mountain_r: int, hill_t: int, hill_a: int, river_t: int):
 	self.coast_limit = limit_a
 	self.coast = coast_t
 	
@@ -37,6 +41,9 @@ func _init(limit_a: int, coast_t: int, smooth_t: int, smooth_amount: int, smooth
 	self.mountain = mountain_t
 	self.mountain_amount = mountain_a
 	self.mountain_refresh = mountain_r
+	
+	self.hill = hill_t
+	self.hill_amount = hill_a
 	
 	self.river = river_t
 	
@@ -72,10 +79,18 @@ func run_smooth_agents(sea_level: float, heightImage: Image, random_gen: RandomN
 	for i in self.smooth_agents.size():
 		self.smooth_agents[i].run(self.dynamic_filled_list, sea_level, heightImage, random_gen)
 
-func start_mountain_agents(width: int, max_mountain_h: float, min_mountain_h: float, mountain_s: float, mountain_p: float, mountain_v: float, sea_level: float, heightImage: Image, random_gen: RandomNumberGenerator):
+func start_mountain_agents(width: int, max_mountain_h: float, min_mountain_h: float, mountain_s: float, mountain_v: float, sea_level: float, heightImage: Image, random_gen: RandomNumberGenerator):
 	print("mountain agents amount: ", self.mountain_amount, " with ", self.mountain, " tokens each")
 	for i in self.mountain_amount:
-		var riser = MountainAgent.new(self.mountain, self.mountain_refresh, max_mountain_h, min_mountain_h, mountain_s, width, mountain_p, mountain_v, self.dynamic_filled_list, sea_level, heightImage, random_gen)
+		var riser = MountainAgent.new(self.mountain, self.mountain_refresh, max_mountain_h, min_mountain_h, mountain_s, width, mountain_v, self.dynamic_filled_list, sea_level, heightImage, random_gen)
 		self.mountain_agents.append(riser)
 		riser.run(self.dynamic_filled_list, sea_level, heightImage, random_gen)
 		print("running ", i, " mountain agent")
+		
+func start_hill_agents(width: int, max_mountain_h: float, min_mountain_h: float, mountain_s: float, mountain_v: float, sea_level: float, heightImage: Image, random_gen: RandomNumberGenerator):
+	print("hill agents amount: ", self.hill_amount, " with ", self.hill, " tokens each")
+	for i in self.hill_amount:
+		var riser = HillAgent.new(self.hill, max_mountain_h, min_mountain_h, mountain_s, width, mountain_v, self.dynamic_filled_list, sea_level, heightImage, random_gen)
+		self.hill_agents.append(riser)
+		riser.run(self.dynamic_filled_list, sea_level, heightImage, random_gen)
+		print("running ", i, " hill agent")

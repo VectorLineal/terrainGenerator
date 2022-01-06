@@ -19,12 +19,17 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://Agents/CoastAgent.gd"
 }, {
+"base": "SoftwareAgent",
+"class": "HillAgent",
+"language": "GDScript",
+"path": "res://Agents/HillAgent.gd"
+}, {
 "base": "Reference",
 "class": "MathUtils",
 "language": "GDScript",
 "path": "res://math_utils.gd"
 }, {
-"base": "SoftwareAgent",
+"base": "HillAgent",
 "class": "MountainAgent",
 "language": "GDScript",
 "path": "res://Agents/MountainAgent.gd"
@@ -57,6 +62,7 @@ _global_script_classes=[ {
 _global_script_class_icons={
 "AgentManager": "",
 "CoastAgent": "",
+"HillAgent": "",
 "MathUtils": "",
 "MountainAgent": "",
 "SmoothAgent": "",

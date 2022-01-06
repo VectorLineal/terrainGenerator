@@ -62,3 +62,24 @@ static func olsen_erosion(heightImage: Image, talus_angle: float, iterations: in
 						new_height = lowest_height + slope_max / 2
 						heightImage.set_pixel(x + MathUtils.neighbourhood[lowest_index].x, y + MathUtils.neighbourhood[lowest_index].y, Color(new_height, new_height, new_height, 1))
 	heightImage.unlock()
+
+static func flatten_map(heightImage: Image):
+	#aplana todo el mapa una única vez
+	heightImage.lock()
+	for y in heightImage.get_height():
+		for x in heightImage.get_width():
+			var height = heightImage.get_pixel(x, y).r
+			var acumulation = 3 * height
+			var counter = 3.0
+			for i in MathUtils.fullNeighbourhood.size():
+				var next_x = x + MathUtils.fullNeighbourhood[i].x
+				var next_y = y + MathUtils.fullNeighbourhood[i].y
+				#El vecindario debe quedar dentro de los constraints del mapa de alturas
+				if next_x >= 0 and next_x < heightImage.get_width() and next_y >= 0 and next_y < heightImage.get_height():
+					var height_i = heightImage.get_pixel(next_x, next_y).r
+					acumulation += height_i
+					counter += 1.0
+			#Se ajusta la nueva altura
+			var new_height = acumulation / counter
+			heightImage.set_pixel(x, y, Color(new_height, new_height, new_height, 1))
+	heightImage.unlock()
