@@ -15,6 +15,11 @@ _global_script_classes=[ {
 "path": "res://Agents/AgentManager.gd"
 }, {
 "base": "SoftwareAgent",
+"class": "BeachAgent",
+"language": "GDScript",
+"path": "res://Agents/BeachAgent.gd"
+}, {
+"base": "SoftwareAgent",
 "class": "CoastAgent",
 "language": "GDScript",
 "path": "res://Agents/CoastAgent.gd"
@@ -61,6 +66,7 @@ _global_script_classes=[ {
 } ]
 _global_script_class_icons={
 "AgentManager": "",
+"BeachAgent": "",
 "CoastAgent": "",
 "HillAgent": "",
 "MathUtils": "",

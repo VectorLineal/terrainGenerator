@@ -34,7 +34,7 @@ float waves(vec2 pos, float time){
 
 
 void vertex(){
-	//VERTEX.y += waves(VERTEX.xy, TIME);
+	VERTEX.y += waves(VERTEX.xy, TIME);
 }
 
 

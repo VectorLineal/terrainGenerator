@@ -15,7 +15,7 @@ func _init(tokens: int):
 func initialize():
 	pass
 
-func run(list: Array, sea_level: float, heightImage: Image, random_gen: RandomNumberGenerator):
+func run(list: Array, sea_level: float, heightImage: Image, biomeImage: Image, random_gen: RandomNumberGenerator):
 	if self.status != DEAD:
 		live()
 		var percept = { #percepción del agente sobre su entorno
@@ -23,7 +23,8 @@ func run(list: Array, sea_level: float, heightImage: Image, random_gen: RandomNu
 			"size": heightImage.get_size(), 
 			"rng": random_gen,
 			"sea": sea_level,
-			"list": list
+			"list": list,
+			"biome": biomeImage
 		}
 		
 		if percept == null:
