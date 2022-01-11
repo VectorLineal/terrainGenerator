@@ -40,6 +40,11 @@ _global_script_classes=[ {
 "path": "res://Agents/MountainAgent.gd"
 }, {
 "base": "SoftwareAgent",
+"class": "RiverAgent",
+"language": "GDScript",
+"path": "res://Agents/RiverAgent.gd"
+}, {
+"base": "SoftwareAgent",
 "class": "SmoothAgent",
 "language": "GDScript",
 "path": "res://Agents/SmoothAgent.gd"
@@ -71,6 +76,7 @@ _global_script_class_icons={
 "HillAgent": "",
 "MathUtils": "",
 "MountainAgent": "",
+"RiverAgent": "",
 "SmoothAgent": "",
 "SoftwareAgent": "",
 "TerrainRefinement": "",

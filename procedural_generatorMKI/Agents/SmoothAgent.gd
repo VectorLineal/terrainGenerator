@@ -17,14 +17,14 @@ func act(perception):
 	if self.tokens <= 0:
 		die()
 	else:
+		var heightImage = perception["map"]
+		var sea = perception["sea"]
+		var rng = perception["rng"]
+		var dynamic_list: Array = perception["list"]
 		for i in self.tokens:
 			if i % self.restart_rate == 0:
 				self.seed_point.x = self.original_point.x
 				self.seed_point.y = self.original_point.y
-			var heightImage = perception["map"]
-			var sea = perception["sea"]
-			var rng = perception["rng"]
-			var dynamic_list: Array = perception["list"]
 			#se hace el proceso de aplanado y que retorna los vecinos visitados
 			var visited_neighbours: Array = flatten(sea, heightImage, dynamic_list, rng)
 			

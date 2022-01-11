@@ -15,12 +15,11 @@ func act(perception):
 	if self.tokens <= 0:
 		die()
 	else:
+		var heightImage = perception["map"]
+		var sea = perception["sea"]
+		var rng = perception["rng"]
+		var dynamic_list: Array = perception["list"]
 		for i in self.tokens:
-			var heightImage = perception["map"]
-			var sea = perception["sea"]
-			var rng = perception["rng"]
-			var dynamic_list: Array = perception["list"]
-			
 			var next_direction = MathUtils.rotate_45_grid(MathUtils.angle_to_grid(self.direction), self.direction_status)
 			var perpendicular_directions = MathUtils.get_perpendicular_grids(next_direction)
 			var elevation: float #guarda el cambio de elvación inical

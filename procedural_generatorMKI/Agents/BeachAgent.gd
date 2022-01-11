@@ -21,13 +21,13 @@ func act(perception):
 	if self.tokens <= 0:
 		die()
 	else:
+		var heightImage = perception["map"]
+		var image = perception["biome"]
+		var sea = perception["sea"]
+		var rng = perception["rng"]
+		var dynamic_list: Array = perception["list"]
 		for i in self.tokens:
 			#print("running token ", i)
-			var heightImage = perception["map"]
-			var image = perception["biome"]
-			var sea = perception["sea"]
-			var rng = perception["rng"]
-			var dynamic_list: Array = perception["list"]
 			#se asegura que el punto base no esté más alto que el límite
 			heightImage.lock()
 			var height = heightImage.get_pixel(self.seed_point.x, self.seed_point.y).r

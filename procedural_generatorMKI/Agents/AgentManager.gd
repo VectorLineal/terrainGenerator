@@ -25,11 +25,12 @@ var hill_amount: int
 var hill_agents: Array = []
 #river agents
 var river: int
+var river_amount: int
 var river_agents: Array = []
 #auxiliars
 var dynamic_filled_list: Array = []
 
-func _init(limit_a: int, coast_t: int, smooth_t: int, smooth_amount: int, smooth_refresh: int, beach_t: int, beach_a: int, mountain_t: int, mountain_a: int, mountain_r: int, hill_t: int, hill_a: int, river_t: int):
+func _init(limit_a: int, coast_t: int, smooth_t: int, smooth_amount: int, smooth_refresh: int, beach_t: int, beach_a: int, mountain_t: int, mountain_a: int, mountain_r: int, hill_t: int, hill_a: int, river_t: int, river_a: int):
 	self.coast_limit = limit_a
 	self.coast = coast_t
 	
@@ -48,6 +49,7 @@ func _init(limit_a: int, coast_t: int, smooth_t: int, smooth_amount: int, smooth
 	self.hill_amount = hill_a
 	
 	self.river = river_t
+	self.river_amount = river_a
 	
 func start_coast_agents(sea_level: float, heightImage: Image, biomeImage: Image, random_gen: RandomNumberGenerator):
 	var children = 1
@@ -104,3 +106,11 @@ func start_beach_agents(width: int, max_beach_h: float, min_beach_h: float, beac
 		self.beach_agents.append(flatter)
 		flatter.run(self.dynamic_filled_list, sea_level, heightImage, biomeImage, random_gen)
 		print("running ", i, " beach agent")
+		
+func start_river_agents(max_river_l: float, min_river_l: float, growth: float, expected_m: float, slope_d: float, starting_s: float, sea_level: float, heightImage: Image, biomeImage: Image, random_gen: RandomNumberGenerator):
+	print("river agents amount: ", self.river_amount, " with ", self.river, " tokens each")
+	for i in self.river_amount:
+		var flatter = RiverAgent.new(self.river, max_river_l, min_river_l, growth, expected_m, slope_d, starting_s, self.dynamic_filled_list, sea_level, heightImage, random_gen)
+		self.river_agents.append(flatter)
+		flatter.run(self.dynamic_filled_list, sea_level, heightImage, biomeImage, random_gen)
+		print("running ", i, " river agent")

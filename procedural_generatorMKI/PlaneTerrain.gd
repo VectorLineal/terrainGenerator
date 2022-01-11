@@ -40,7 +40,8 @@ var mountain_amount = 2
 var mountain_refresh_times = 8
 var hill_tokens = 80
 var hill_amount = 6
-var river_tokens = 1000
+var river_tokens = 30
+var river_amount = 4
 var agent_manager
 
 # Called when the node enters the scene tree for the first time.
@@ -75,7 +76,7 @@ func _ready():
 	var coast_tokens = floor(self.landmass * size * size)
 	var smooth_refresh_rate = int(self.smooth_tokens / smooth_refresh_times)
 	var mountain_refresh_rate = int(self.mountain_tokens / mountain_refresh_times)
-	agent_manager = AgentManager.new(limit, coast_tokens, self.smooth_tokens, self.smooth_amount, smooth_refresh_rate, self.beach_tokens, self.beach_amount, self.mountain_tokens, self.mountain_amount, mountain_refresh_rate, self.hill_tokens, self.hill_amount, self.river_tokens)
+	agent_manager = AgentManager.new(limit, coast_tokens, self.smooth_tokens, self.smooth_amount, smooth_refresh_rate, self.beach_tokens, self.beach_amount, self.mountain_tokens, self.mountain_amount, mountain_refresh_rate, self.hill_tokens, self.hill_amount, self.river_tokens, self.river_amount)
 	agent_manager.start_coast_agents(self.seaLevel, heightImage, image, rng)
 	agent_manager.start_smooth_agents(self.seaLevel, heightImage, image, rng)
 	#hill agents
@@ -108,10 +109,16 @@ func _ready():
 	print("slope mean = ", slope_score.x, ", slope standard desviation = ", slope_score.y, ", erosion score = ", slope_score.z)
 	#se aplica campo vetorial de vientos al mapa de clima para simular precipitaciones
 	Weather.simulate_precipitations(image, heightImage, climate_iterations, maxWet, 2, 0.15, 0.02, self.rng)
-	#se corren agentes de playa que debe ser despues de la simulación climática
+	#se corren agentes de playa y ríos que debe ser despues de la simulación climática
+	#beach agents
 	agent_manager.start_beach_agents(15, 0.105, 0.1005, 0.17, self.seaLevel, heightImage, image, rng)
 	agent_manager.start_beach_agents(20, 0.105, 0.101, 0.17, self.seaLevel, heightImage, image, rng)
 	agent_manager.start_beach_agents(30, 0.1022, 0.101, 0.17, self.seaLevel, heightImage, image, rng)
+	
+	#river agents
+	agent_manager.start_river_agents(500, 100, 0.1, 0.16, 0.0002, 0.04, self.seaLevel, heightImage, image, rng)
+	agent_manager.start_river_agents(800, 150, 0.08, 0.24, 0.0002, 0.05, self.seaLevel, heightImage, image, rng)
+	agent_manager.start_river_agents(1000, 200, 0.1, 0.4, 0.0002, 0.06, self.seaLevel, heightImage, image, rng)
 	#se pinta el mar color arena
 	Weather.paint_sea(heightImage, image, seaLevel)
 	#se pasan variables uniformes al shader

@@ -22,9 +22,9 @@ func act(perception):
 	if self.tokens <= 0:
 		die()
 	else:
+		var heightImage = perception["map"]
+		var sea = perception["sea"]
 		for i in self.tokens:
-			var heightImage = perception["map"]
-			var sea = perception["sea"]
 			#se asegura que el punto base no esté totalmente rodeado por el area ya elevada
 			while is_point_surrounded(self.seed_point, sea, heightImage):
 				var next_direction = MathUtils.angle_to_grid(self.direction)

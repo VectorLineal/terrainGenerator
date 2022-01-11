@@ -101,6 +101,8 @@ static func angle_to_grid(v: Vector2): #vector con componentes entre [-1, 1]
 
 #dada una dirección de cambio en una grilla, elige sus 2 direcciones perpendiculares
 static func get_perpendicular_grids(direction: Array): #arreglo de 2 componentes
+	if direction[0] == 0 and direction[1] == 0:
+		return [[0, 0], [0, 0]]
 	var results: Array = [[0, 0], [0, 0]]
 	if direction[0] == 0:
 		results[0] = [-1, 0]

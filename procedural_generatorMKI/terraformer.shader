@@ -104,6 +104,7 @@ void fragment(){
 	vec4 desert = vec4(0, 0, 0.12, 1);
 	//vec3(0.82, 0.52, 0.39); vec3(0.784, 0.598, 0.337);
 	vec3 desertC = vec3(0.97, 0.678, 0.204);
+	vec3 riverC = vec3(0.48, 0.48, 0.88);
 	//yermo
 	vec4 wasteland = vec4(0.12, 0, 0.24, 1);
 	vec3 wastelandC = vec3(0.4, 0.19, 0.04);
@@ -156,7 +157,17 @@ void fragment(){
 	float wet = texture(biome_map, UV).z;
 	float seaMark = texture(biome_map, UV).w;
 	vec3 biomeColor;
-	if(isDotInSquare(desert, wet, temperature) || seaMark < 0.5){
+	if(seaMark >= 0.5 && seaMark < 1.0){
+		amplitude = 1.0;
+		frequency = 1000.0;
+		xPeriod = 60.0;
+		yPeriod = 60.0;
+		turbPower = 90.0;
+		turbSize = 2.0;
+		xyValue = UV.x * xPeriod / texture_size.x + UV.y * yPeriod / texture_size.y + turbPower * fbm(UV * turbSize, amplitude, frequency) / 256.0;
+    	sineValue = abs(sin(xyValue * 3.14159));
+		biomeColor = riverC * sineValue;
+	}else if(isDotInSquare(desert, wet, temperature) || seaMark < 0.5){
 		amplitude = 1.0;
 		frequency = 1000.0;
 		xPeriod = 60.0;
