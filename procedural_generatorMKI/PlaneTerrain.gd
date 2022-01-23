@@ -32,14 +32,14 @@ var detail = 9
 var landmass = 0.3
 var smooth_tokens = 750
 var smooth_amount = 8
-var smooth_refresh_times = 4
-var beach_tokens = 500
+var smooth_refresh_times = 2
+var beach_tokens = 600
 var beach_amount = 6
 var mountain_tokens = 120
 var mountain_amount = 2
 var mountain_refresh_times = 8
 var hill_tokens = 80
-var hill_amount = 6
+var hill_amount = 7
 var river_tokens = 30
 var river_amount = 4
 var agent_manager
@@ -116,9 +116,9 @@ func _ready():
 	agent_manager.start_beach_agents(30, 0.1022, 0.101, 0.17, self.seaLevel, heightImage, image, rng)
 	
 	#river agents
-	agent_manager.start_river_agents(500, 100, 0.1, 0.16, 0.0002, 0.04, self.seaLevel, heightImage, image, rng)
-	agent_manager.start_river_agents(800, 150, 0.08, 0.24, 0.0002, 0.05, self.seaLevel, heightImage, image, rng)
-	agent_manager.start_river_agents(1000, 200, 0.1, 0.4, 0.0002, 0.06, self.seaLevel, heightImage, image, rng)
+	agent_manager.start_river_agents(200, 100, 0.07, 0.16, 0.0002, 0.04, self.seaLevel, heightImage, image, rng)
+	agent_manager.start_river_agents(400, 150, 0.06, 0.24, 0.0002, 0.05, self.seaLevel, heightImage, image, rng)
+	agent_manager.start_river_agents(600, 200, 0.08, 0.4, 0.0002, 0.06, self.seaLevel, heightImage, image, rng)
 	#se pinta el mar color arena
 	Weather.paint_sea(heightImage, image, seaLevel)
 	#se pasan variables uniformes al shader
@@ -131,10 +131,13 @@ func _ready():
 	self.get_surface_material(0).set_shader_param("biome_map", biomeMap)
 	self.get_surface_material(0).set_shader_param("seed", rng.randf_range(0, 300000))
 	
-	#Paso de refinamiento de terreno usando técnicas de sistemas inteligentes
 	#El texturizado se hace desde el fragment shader dependiendo de temperatura y humedad que producen un bioma.
 	
 	#Paso de pocisionamiento de assets para dar mayor detalle al terreno
+	
+	#se guardan los mapas de altura y de bioma
+	image.save_png("res://biome.png")
+	heightImage.save_png("res://height.png")
 	
 
 

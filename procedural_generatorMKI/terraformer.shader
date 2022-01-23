@@ -13,6 +13,7 @@ varying vec3 textureShaperV1;
 varying vec3 textureShaperV2;
 varying vec3 textureShaperV3;
 varying float slope;
+varying flat float seaMark;
 
 float hash(vec2 p) {
   return fract(sin(dot(p * 17.17, vec2(14.91, 67.31))) * seed);
@@ -82,6 +83,7 @@ void vertex() {
 	vec2 e = vec2(0.01, 0);
 	vec3 normal = normalize(vec3(texture(map, UV - e).x - texture(map, UV + e).x, 2.0 * e.x, texture(map, UV - e.yx).x - texture(map, UV + e.yx).x));
 	NORMAL = normal;
+	seaMark = texture(biome_map, UV).w;
 	slope = texture(biome_map, UV).y;
 	textureShaperV1 = vec3((fbm(VERTEX.xz * 4.0, 1.2, 200.0) + sin((VERTEX.z - VERTEX.x) * 160.0) + sin((VERTEX.z + VERTEX.x) * 240.0) / 3.0));
 	textureShaperV2 = vec3((fbm(VERTEX.xz * 0.15, 1.0, 2000.0) + sin((VERTEX.z - VERTEX.x) * 1200.0 * cos(VERTEX.x * 320.0) * sin(VERTEX.z * 640.0)) + sin((VERTEX.z + VERTEX.x) * 500.0 * cos(VERTEX.x * 640.0) * sin(VERTEX.z * 320.0))) / 3.0);
@@ -155,9 +157,8 @@ void fragment(){
 	
 	float temperature = texture(biome_map, UV).x;
 	float wet = texture(biome_map, UV).z;
-	float seaMark = texture(biome_map, UV).w;
 	vec3 biomeColor;
-	if(seaMark >= 0.5 && seaMark < 1.0){
+	if(seaMark >= 0.58 && seaMark < 0.62){
 		amplitude = 1.0;
 		frequency = 1000.0;
 		xPeriod = 60.0;
@@ -167,7 +168,7 @@ void fragment(){
 		xyValue = UV.x * xPeriod / texture_size.x + UV.y * yPeriod / texture_size.y + turbPower * fbm(UV * turbSize, amplitude, frequency) / 256.0;
     	sineValue = abs(sin(xyValue * 3.14159));
 		biomeColor = riverC * sineValue;
-	}else if(isDotInSquare(desert, wet, temperature) || seaMark < 0.5){
+	}else if(isDotInSquare(desert, wet, temperature) || seaMark < 0.55){
 		amplitude = 1.0;
 		frequency = 1000.0;
 		xPeriod = 60.0;

@@ -35,8 +35,6 @@ func act(perception):
 			#se guardan un punto de montaña y un posible camino entre estos
 			var mountain: Vector2 = getRandomLandPointDynamic(false, dynamic_list, sea, heightImage, rng)
 			#la distancia entre montaña y costa inicial debería ser al menos la del río
-			#while MathUtils.sqr_dst(mountain.x, mountain.y, seed_point.x, seed_point.y) >= self.min_length * self.min_length:
-			#	mountain = getRandomLandPointDynamic(true, dynamic_list, sea, heightImage, rng)
 			var path: Array
 			#se guarda una variable que indica si es imposible hacer río
 			var is_posible: bool = true
@@ -67,7 +65,7 @@ func act(perception):
 			else:
 				print("i succeded with ", path.size(), " of path")
 				#esta variable crece a medida que el río deciende de la montaña
-				var width: float = 1.0
+				var width: float = 8.0
 				var next_slope: float = self.starting_slope
 				for j in range(path.size() - 1, -1, -1):
 					#si se llega a un punto que ya es un río se detiene el agente, así quedan ríos afluentes
@@ -114,25 +112,24 @@ func make_river(cur_point: Vector2, next_direction: Array, width: int, next_slop
 				
 		var right_x = self.seed_point.x + perpendicular_directions[1][0] * (1 + j)
 		var right_y = self.seed_point.y + perpendicular_directions[1][1] * (1 + j)
+		#print("next left: ", left_x, ", ", left_y, "; right: ", right_x, ", ", right_y)
 		#se asegura que las nuevas coordenadas estén dentro del mapa además debe haber elevación o el proceso no tendría sentido
 		if left_x >= 0 and left_x < heightImage.get_width() and left_y >= 0 and left_y < heightImage.get_height():
-			if next_height >= 0:
-				#se pone la nueva altura
-				heightImage.lock()
-				heightImage.set_pixel(left_x, left_y, Color(next_height, next_height, next_height, 1))
-				heightImage.unlock()
-				paint_river(left_x, left_y, image)
-				#se aplana
-				#flatten(Vector2(left_x, left_y), sea, heightImage, dynamic_list)
+			#se pone la nueva altura
+			heightImage.lock()
+			heightImage.set_pixel(left_x, left_y, Color(next_height, next_height, next_height, 1))
+			heightImage.unlock()
+			paint_river(left_x, left_y, image)
+			#se aplana
+			#flatten(Vector2(left_x, left_y), sea, heightImage, dynamic_list)
 		if right_x >= 0 and right_x < heightImage.get_width() and right_y >= 0 and right_y < heightImage.get_height():
-			if next_height <= 1:
-				#se pone la nueva altura
-				heightImage.lock()
-				heightImage.set_pixel(right_x, right_y, Color(next_height, next_height, next_height, 1))
-				heightImage.unlock()
-				paint_river(right_x, right_y, image)
-				#se aplana
-				#flatten(Vector2(right_x, right_y), sea, heightImage, dynamic_list)
+			#se pone la nueva altura
+			heightImage.lock()
+			heightImage.set_pixel(right_x, right_y, Color(next_height, next_height, next_height, 1))
+			heightImage.unlock()
+			paint_river(right_x, right_y, image)
+			#se aplana
+			#flatten(Vector2(right_x, right_y), sea, heightImage, dynamic_list)
 	#se aplana la nueva altura
 	flatten(cur_point, sea, heightImage, dynamic_list)
 	flatten_around(cur_point, dynamic_list, sea, heightImage)
@@ -203,13 +200,15 @@ func get_next_path(point: Vector2, mountain: Vector2, sea_level: float, heightIm
 		var next_y = y + MathUtils.fullNeighbourhood[i].y
 		#El vecindario debe quedar dentro de los constraints del mapa de alturas
 		if next_x >= 0 and next_x < heightImage.get_width() and next_y >= 0 and next_y < heightImage.get_height():
-			heightImage.lock()
-			var height_i = heightImage.get_pixel(next_x, next_y).r
-			heightImage.unlock()
-			var score = height_i - MathUtils.sqr_dst(next_x, next_y, m_x, m_y)
-			if height_i > sea_level and score > cur_score:
-				cur_score = score
-				next_point = Vector2(next_x, next_y)
+			#el punto siguiente no debe dar a la costa
+			if is_point_surrounded(Vector2(next_x, next_y), sea_level, heightImage):
+				heightImage.lock()
+				var height_i = heightImage.get_pixel(next_x, next_y).r
+				heightImage.unlock()
+				var score = -36 * height_i - MathUtils.sqr_dst(next_x, next_y, m_x, m_y)
+				if height_i > sea_level and score > cur_score:
+					cur_score = score
+					next_point = Vector2(next_x, next_y)
 			
 	return next_point
 
