@@ -113,15 +113,15 @@ func get_next_coast(point: Vector2, sea_level: float, heightImage: Image):
 			if height_i <= sea_level:
 				var dr = MathUtils.sqr_dst(next_x, next_y, self.repulsor.x, self.repulsor.y)
 				#se debe obtener la mínima distancia a los bordes del mapa por lo que se calcula el borde del mapa más cercano primero
-				#var corner = MathUtils.sqr_dst(next_x, next_y, 0, 0)
-				#corner = min(corner, MathUtils.sqr_dst(next_x, next_y, heightImage.get_width() - 1, 0))
-				#corner = min(corner, MathUtils.sqr_dst(next_x, next_y, 0, heightImage.get_height() - 1))
-				#corner = min(corner, MathUtils.sqr_dst(next_x, next_y, heightImage.get_width() - 1, heightImage.get_height() - 1))
+				var corner = MathUtils.sqr_dst(next_x, next_y, 0, 0)
+				corner = min(corner, MathUtils.sqr_dst(next_x, next_y, heightImage.get_width() - 1, 0))
+				corner = min(corner, MathUtils.sqr_dst(next_x, next_y, 0, heightImage.get_height() - 1))
+				corner = min(corner, MathUtils.sqr_dst(next_x, next_y, heightImage.get_width() - 1, heightImage.get_height() - 1))
 				var edge_map = MathUtils.get_closest_border(Vector2(next_x, next_y), Vector2(heightImage.get_width(), heightImage.get_height()))
 				var edge = MathUtils.sqr_dst(next_x, next_y, edge_map.x, edge_map.y)
-				var de = edge
+				var de = (edge + corner * 0.251875) / 1.251875
 				var da = MathUtils.sqr_dst(next_x, next_y, self.attractor.x, self.attractor.y)
-				var next_score = dr + 6 * de - da
+				var next_score = dr + 4 * de - da
 				#se debe tener el mejor puntaje y el punto que apunta
 				if score < next_score:
 					score = next_score

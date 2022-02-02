@@ -63,7 +63,7 @@ static func olsen_erosion(heightImage: Image, talus_angle: float, iterations: in
 						heightImage.set_pixel(x + MathUtils.neighbourhood[lowest_index].x, y + MathUtils.neighbourhood[lowest_index].y, Color(new_height, new_height, new_height, 1))
 	heightImage.unlock()
 
-static func flatten_map(heightImage: Image):
+static func smooth_map(heightImage: Image):
 	#aplana todo el mapa una única vez
 	heightImage.lock()
 	for y in heightImage.get_height():

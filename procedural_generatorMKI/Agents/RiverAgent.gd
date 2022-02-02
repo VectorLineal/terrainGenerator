@@ -65,7 +65,7 @@ func act(perception):
 			else:
 				print("i succeded with ", path.size(), " of path")
 				#esta variable crece a medida que el río deciende de la montaña
-				var width: float = 8.0
+				var width: float = 1.0
 				var next_slope: float = self.starting_slope
 				for j in range(path.size() - 1, -1, -1):
 					#si se llega a un punto que ya es un río se detiene el agente, así quedan ríos afluentes
@@ -94,7 +94,7 @@ func make_river(cur_point: Vector2, next_direction: Array, width: int, next_slop
 	var elevation: float = next_slope
 	#se obtiene la altura actual y se asegura que no rebase 1
 	heightImage.lock()
-	var height = heightImage.get_pixel(self.seed_point.x, self.seed_point.y).r
+	var height = heightImage.get_pixel(cur_point.x, cur_point.y).r
 	heightImage.unlock()
 	var next_height: float = height - next_slope
 	#no se peden tener alturas negativas
@@ -107,11 +107,11 @@ func make_river(cur_point: Vector2, next_direction: Array, width: int, next_slop
 	#se marca como río en mapa de biomas
 	paint_river(cur_point.x, cur_point.y, image)
 	for j in width:
-		var left_x = self.seed_point.x + perpendicular_directions[0][0] * (1 + j)
-		var left_y = self.seed_point.y + perpendicular_directions[0][1] * (1 + j)
+		var left_x = cur_point.x + perpendicular_directions[0][0] * (1 + j)
+		var left_y = cur_point.y + perpendicular_directions[0][1] * (1 + j)
 				
-		var right_x = self.seed_point.x + perpendicular_directions[1][0] * (1 + j)
-		var right_y = self.seed_point.y + perpendicular_directions[1][1] * (1 + j)
+		var right_x = cur_point.x + perpendicular_directions[1][0] * (1 + j)
+		var right_y = cur_point.y + perpendicular_directions[1][1] * (1 + j)
 		#print("next left: ", left_x, ", ", left_y, "; right: ", right_x, ", ", right_y)
 		#se asegura que las nuevas coordenadas estén dentro del mapa además debe haber elevación o el proceso no tendría sentido
 		if left_x >= 0 and left_x < heightImage.get_width() and left_y >= 0 and left_y < heightImage.get_height():

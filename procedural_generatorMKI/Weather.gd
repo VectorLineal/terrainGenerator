@@ -52,6 +52,9 @@ static func distribute_wet_temp(image: Image, heightImage: Image, minTemperature
 			var red = 1 - MathUtils.remap(minTemperature, maxTemperature, seaLevel, 1, height * (maxTemperature - minTemperature))
 			#blue representa humedad
 			var blue = 0
+			var sea = image.get_pixel(x, y).a
+			if sea < 0.6:
+				sea = 1.0
 			for i in wetPoints:
 				var terDif = ((pow(wetConcentrations[i][3], 2) -  pow(x - wetConcentrations[i][0], 2) - pow(y - wetConcentrations[i][1], 2)) / pow(wetConcentrations[i][3], 2)) - 0.1 * (height - heightImage.get_pixel(wetConcentrations[i][0], wetConcentrations[i][1]).r)
 				if terDif < 0:
@@ -62,7 +65,7 @@ static func distribute_wet_temp(image: Image, heightImage: Image, minTemperature
 			if max_blue > 0:
 				blue = blue / max_blue
 			#print("map x: ", x, " y: ", y, " wet: ", blue," temp: ", red)
-			image.set_pixel(x, y, Color(red, green, blue * maxWet, 1))
+			image.set_pixel(x, y, Color(red, green, blue * maxWet, sea))
 	image.unlock()
 	heightImage.unlock()
 
@@ -79,7 +82,9 @@ static func simulate_precipitations(image: Image, heightImage: Image, climate_it
 		for y in image.get_height():
 			for x in image.get_width():
 				var red = image.get_pixel(x, y).r
+				var green = image.get_pixel(x, y).g
 				var blue = image.get_pixel(x, y).b
+				var sea = image.get_pixel(x, y).a
 				var delta_wet = red * blue
 				var max_delta_wet = blue * (1 - retention)
 				if max_delta_wet > 0:
@@ -88,7 +93,9 @@ static func simulate_precipitations(image: Image, heightImage: Image, climate_it
 					var next_y = coords[1]
 					if next_x != x or next_y != y:
 						var red_i = image.get_pixel(next_x, next_y).r
+						var green_i = image.get_pixel(next_x, next_y).g
 						var blue_i = image.get_pixel(next_x, next_y).b
+						var sea_i = image.get_pixel(next_x, next_y).a
 						var max_delta_wet_i = maxWet - blue_i
 						if max_delta_wet_i < max_delta_wet:
 							max_delta_wet = max_delta_wet_i
@@ -102,7 +109,7 @@ static func simulate_precipitations(image: Image, heightImage: Image, climate_it
 							print("map x: ", next_x, " y: ", next_y, " wet: ", blue_i)
 						if blue < 0 or blue > 1:
 							print("map x: ", x, " y: ", y, " wet: ", blue," temp: ", red)
-						image.set_pixel(x, y, Color(red, 0, blue * maxWet, 1))
-						image.set_pixel(next_x, next_y, Color(red_i, 0, blue_i, 1))
+						image.set_pixel(x, y, Color(red, green, blue * maxWet, sea))
+						image.set_pixel(next_x, next_y, Color(red_i, green_i, blue_i, sea_i))
 	image.unlock()
 	heightImage.unlock()
