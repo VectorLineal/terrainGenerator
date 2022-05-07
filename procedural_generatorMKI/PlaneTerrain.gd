@@ -28,6 +28,13 @@ var climate_iterations = 1
 var talus_angle = 20 / self.size
 var iterations = 50
 
+#variables sobre generación hidrológica
+var initial_river_amount: int = 4
+var max_river_expansion: int = 5
+var river_min_dist: int = 200
+var river_max_dist: int = 300
+var river_flow_variation: int = 2
+
 #variables sobre agentes
 var use_agents = false
 var detail = 9
@@ -108,6 +115,10 @@ func _ready():
 		agent_manager.start_river_agents(200, 100, 0.015, 0.16, 0.0002, 0.04, self.seaLevel, heightImage, image, rng)
 		agent_manager.start_river_agents(400, 150, 0.02, 0.24, 0.0002, 0.05, self.seaLevel, heightImage, image, rng)
 		agent_manager.start_river_agents(600, 200, 0.025, 0.4, 0.0002, 0.06, self.seaLevel, heightImage, image, rng)
+	
+	#técnica de generación de ríos por hidrología
+	var river_tree = RiverTree.new(Vector2(110, 0), 5)
+	river_tree.expand(river_min_dist, river_max_dist, river_flow_variation, MathUtils.get_slope_map(heightImage), rng)
 	
 	#se suaviza todo el mapa para hacerlo menos caótico
 	TerrainRefinement.smooth_map(heightImage)

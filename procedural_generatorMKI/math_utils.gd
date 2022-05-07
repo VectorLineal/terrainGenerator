@@ -1,5 +1,17 @@
 class_name MathUtils
 
+static func int_pow(a, b: int):
+	if b <= 0:
+		return 1
+	var r = 1
+	for i in b:
+		r *= a
+	return r
+
+#indica si el punto dado está dentro de la circunferencia
+static func is_point_into_circle(c_x, c_y, radius, p_x, p_y):
+	return int_pow(radius, 2) >= int_pow(p_x - c_x, 2) + int_pow(p_y - c_y, 2)
+
 #modified Von Neumann neighbourhood
 const neighbourhood = [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1)]
 const fullNeighbourhood = [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1), Vector2(0, -1), Vector2(1, 0), Vector2(0, 1), Vector2(-1, 0)]
@@ -219,3 +231,77 @@ static func generate_vectorial_fractal_field(width: int, height: int, rng: Rando
 				row.append(Vector2(cur_x, cur_y))
 		field.append(row)
 	return field
+
+#pinta el punto en el mapa de bioma como río
+static func paint_river(x: float, y: float, image: Image):
+	image.lock()
+	var color: Color = image.get_pixel(x, y)
+	image.unlock()
+	#el alfa representará si está debajo del nivel del mar o si es una playa
+	color.a = 0.6
+	image.lock()
+	image.set_pixel(x, y, color)
+	image.unlock()
+
+static func is_river(x: float, y: float, image: Image):
+	image.lock()
+	var color: Color = image.get_pixel(x, y)
+	image.unlock()
+	#el alfa representará si está debajo del nivel del mar o si es una playa
+	if color.a < 1.0 and color.a > 0.5:
+		return true
+	else:
+		return false
+
+static func create_floating_matrix(width: int, height: int, value: float = 0):
+	var matrix=[]
+	#crea una matriz float de las dimensiones dadas con todos los campos en value
+	for y in height:
+		matrix.append([])
+		for x in width:
+			matrix[y].append(value)
+	return matrix
+
+static func create_boolean_matrix(width: int, height: int, value: bool = true):
+	var matrix=[]
+	#crea una matriz booleana de las dimensiones dadas con todos los campos en falso
+	for y in height:
+		matrix.append([])
+		for x in width:
+			matrix[y].append(value)
+	return matrix
+
+#retorna el resultado de la operación lógica AND entre 2 matrices booleanas
+static func matrix_and(mat_a: Array, mat_b: Array):
+	if mat_a.size() == 0 or mat_b.size() == 0:
+		return [[]]
+	elif mat_a.size() == mat_b.size() and mat_a[0].size() == mat_b[0].size():
+		var result = create_boolean_matrix(mat_a.size(), mat_a[0].size())
+		for y in result.size():
+			for x in result[0].size():
+				result[y][x] = mat_a[y][x] and mat_b[y][x]
+		return result
+#retorna el mapa de elevaciones a partir de un mapa de alturas
+static func get_slope_map(heightImage: Image):
+	var mat = create_floating_matrix(heightImage.get_width(), heightImage.get_height())
+	for y in heightImage.get_height():
+		for x in heightImage.get_width():
+			heightImage.lock()
+			var height = heightImage.get_pixel(x, y).r
+			heightImage.unlock()
+			var slope_total = 0
+			var neighbours_visited = 0
+			for i in fullNeighbourhood.size():
+					var next_x = x + fullNeighbourhood[i].x
+					var next_y = y + fullNeighbourhood[i].y
+					#El vecindario debe quedar dentro de los constraints del mapa de alturas
+					if next_x >= 0 and next_x < heightImage.get_width() and next_y >= 0 and next_y < heightImage.get_height():
+						heightImage.lock()
+						var height_i = heightImage.get_pixel(next_x, next_y).r
+						heightImage.unlock()
+						var slope_i = abs(height - height_i)
+						slope_total += slope_i
+						neighbours_visited += 1
+			#green  representa el mapa de inclinaciones
+			mat[y][x] = slope_total / neighbours_visited
+	return mat

@@ -69,7 +69,7 @@ func act(perception):
 				var next_slope: float = self.starting_slope
 				for j in range(path.size() - 1, -1, -1):
 					#si se llega a un punto que ya es un río se detiene el agente, así quedan ríos afluentes
-					if is_river(path[j].x, path[j].y, image):
+					if MathUtils.is_river(path[j].x, path[j].y, image):
 						print("I arrived to another river")
 						print("I created a river in try ", i)
 						return
@@ -105,7 +105,7 @@ func make_river(cur_point: Vector2, next_direction: Array, width: int, next_slop
 	heightImage.set_pixel(cur_point.x, cur_point.y, Color(next_height, next_height, next_height, 1))
 	heightImage.unlock()
 	#se marca como río en mapa de biomas
-	paint_river(cur_point.x, cur_point.y, image)
+	MathUtils.paint_river(cur_point.x, cur_point.y, image)
 	for j in width:
 		var left_x = cur_point.x + perpendicular_directions[0][0] * (1 + j)
 		var left_y = cur_point.y + perpendicular_directions[0][1] * (1 + j)
@@ -119,7 +119,7 @@ func make_river(cur_point: Vector2, next_direction: Array, width: int, next_slop
 			heightImage.lock()
 			heightImage.set_pixel(left_x, left_y, Color(next_height, next_height, next_height, 1))
 			heightImage.unlock()
-			paint_river(left_x, left_y, image)
+			MathUtils.paint_river(left_x, left_y, image)
 			#se aplana
 			#flatten(Vector2(left_x, left_y), sea, heightImage, dynamic_list)
 		if right_x >= 0 and right_x < heightImage.get_width() and right_y >= 0 and right_y < heightImage.get_height():
@@ -127,7 +127,7 @@ func make_river(cur_point: Vector2, next_direction: Array, width: int, next_slop
 			heightImage.lock()
 			heightImage.set_pixel(right_x, right_y, Color(next_height, next_height, next_height, 1))
 			heightImage.unlock()
-			paint_river(right_x, right_y, image)
+			MathUtils.paint_river(right_x, right_y, image)
 			#se aplana
 			#flatten(Vector2(right_x, right_y), sea, heightImage, dynamic_list)
 	#se aplana la nueva altura
@@ -205,7 +205,7 @@ func get_next_path(point: Vector2, mountain: Vector2, sea_level: float, heightIm
 				heightImage.lock()
 				var height_i = heightImage.get_pixel(next_x, next_y).r
 				heightImage.unlock()
-				var score = -36 * height_i - MathUtils.sqr_dst(next_x, next_y, m_x, m_y)
+				var score = -10000 * height_i - MathUtils.sqr_dst(next_x, next_y, m_x, m_y)
 				if height_i > sea_level and score > cur_score:
 					cur_score = score
 					next_point = Vector2(next_x, next_y)
@@ -250,24 +250,3 @@ func flatten(point: Vector2, sea: float, heightImage: Image, dynamic_list: Array
 			
 	#para mantener el programa óptimo, si la nueva altura es menor al nivel del mar, se elimina de la lista, si era menor y se vuelve mayor, se añade
 	fix_dynamic_list(point, dynamic_list, height, sea)
-
-#pinta el punto en el mapa de bioma como río
-func paint_river(x: float, y: float, image: Image):
-	image.lock()
-	var color: Color = image.get_pixel(x, y)
-	image.unlock()
-	#el alfa representará si está debajo del nivel del mar o si es una playa
-	color.a = 0.6
-	image.lock()
-	image.set_pixel(x, y, color)
-	image.unlock()
-
-func is_river(x: float, y: float, image: Image):
-	image.lock()
-	var color: Color = image.get_pixel(x, y)
-	image.unlock()
-	#el alfa representará si está debajo del nivel del mar o si es una playa
-	if color.a < 1.0 and color.a > 0.5:
-		return true
-	else:
-		return false
