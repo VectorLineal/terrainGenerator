@@ -30,7 +30,7 @@ var iterations = 50
 
 #variables sobre generación hidrológica
 var initial_river_amount: int = 4
-var max_river_expansion: int = 5
+var max_river_expansion: int = 8
 var river_min_dist: int = 200
 var river_max_dist: int = 300
 var river_flow_variation: int = 2
@@ -118,7 +118,7 @@ func _ready():
 	
 	#técnica de generación de ríos por hidrología
 	var river_tree = RiverTree.new(Vector2(110, 0), 5)
-	river_tree.expand(river_min_dist, river_max_dist, river_flow_variation, MathUtils.get_slope_map(heightImage), rng)
+	river_tree.expand(river_min_dist, river_max_dist, river_flow_variation, max_river_expansion, MathUtils.get_slope_map(heightImage), rng)
 	
 	#se suaviza todo el mapa para hacerlo menos caótico
 	TerrainRefinement.smooth_map(heightImage)
