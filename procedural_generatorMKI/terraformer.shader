@@ -13,7 +13,7 @@ varying vec3 textureShaperV1;
 varying vec3 textureShaperV2;
 varying vec3 textureShaperV3;
 varying float slope;
-varying flat float seaMark;
+varying float seaMark;
 
 float hash(vec2 p) {
   return fract(sin(dot(p * 17.17, vec2(14.91, 67.31))) * seed);

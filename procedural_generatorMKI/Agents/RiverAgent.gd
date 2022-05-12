@@ -131,19 +131,8 @@ func make_river(cur_point: Vector2, next_direction: Array, width: int, next_slop
 			#se aplana
 			#flatten(Vector2(right_x, right_y), sea, heightImage, dynamic_list)
 	#se aplana la nueva altura
-	flatten(cur_point, sea, heightImage, dynamic_list)
-	flatten_around(cur_point, dynamic_list, sea, heightImage)
-
-#funcíon que aplana el vecindario de dado puntp
-func flatten_around(point: Vector2, list: Array, sea_level: float, heightImage: Image):
-	var x = point.x
-	var y = point.y
-	for i in MathUtils.fullNeighbourhood.size():
-		var next_x = x + MathUtils.fullNeighbourhood[i].x
-		var next_y = y + MathUtils.fullNeighbourhood[i].y
-		#El vecindario debe quedar dentro de los constraints del mapa de alturas
-		if next_x >= 0 and next_x < heightImage.get_width() and next_y >= 0 and next_y < heightImage.get_height():
-			flatten(Vector2(next_x, next_y), sea_level, heightImage, list)
+	MathUtils.flatten(cur_point, sea, heightImage, dynamic_list)
+	MathUtils.flatten_around(cur_point, dynamic_list, sea, heightImage)
 	
 #función que calcula un punto aleatorio que esté encima de un nivel del mar usando programación dinámica
 func getRandomLandPointDynamic(is_shore: bool, list: Array, sea_level: float, heightImage: Image, random_gen: RandomNumberGenerator):
@@ -211,42 +200,3 @@ func get_next_path(point: Vector2, mountain: Vector2, sea_level: float, heightIm
 					next_point = Vector2(next_x, next_y)
 			
 	return next_point
-
-func fix_dynamic_list(point: Vector2, dynamic_list: Array, height: float, sea: float):
-	var index = MathUtils.get_element_index(point, dynamic_list)
-	if index >= 0:
-		if height <= sea:
-			dynamic_list.remove(index)
-	else:
-		if height > sea:
-			dynamic_list.append(point)
-
-#aplana el terreno en un punto dado
-func flatten(point: Vector2, sea: float, heightImage: Image, dynamic_list: Array):
-	if point.x < 0 || point.y < 0:
-		print("fatal error at point:", point)
-	heightImage.lock()
-	var height = heightImage.get_pixel(point.x, point.y).r
-	heightImage.unlock()
-	var amount = 3 * height
-	var counter = 3.0
-			
-	for j in MathUtils.fullNeighbourhood.size():
-		var next_x = point.x + MathUtils.fullNeighbourhood[j].x
-		var next_y = point.y + MathUtils.fullNeighbourhood[j].y
-		#El vecindario debe quedar dentro de los constraints del mapa de alturas
-		if next_x >= 0 and next_x < heightImage.get_width() and next_y >= 0 and next_y < heightImage.get_height():
-			heightImage.lock()
-			var height_i = heightImage.get_pixel(next_x, next_y).r
-			heightImage.unlock()
-			amount += height_i
-			counter += 1.0
-	height = amount / counter
-	if height > 1:
-		height = 1
-	heightImage.lock()
-	heightImage.set_pixel(point.x, point.y, Color(height, height, height, 1))
-	heightImage.unlock()
-			
-	#para mantener el programa óptimo, si la nueva altura es menor al nivel del mar, se elimina de la lista, si era menor y se vuelve mayor, se añade
-	fix_dynamic_list(point, dynamic_list, height, sea)

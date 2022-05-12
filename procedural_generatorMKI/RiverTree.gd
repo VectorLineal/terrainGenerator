@@ -19,7 +19,6 @@ func expand(min_l: int, max_l: int, flow_variation: int, expansion: int, image: 
 	var next_y: int
 	var next_point: Vector2
 	var next_flow: int
-	var next_path: Array = []
 	var cur_x: int
 	var cur_y: int
 	var cur_point: Vector2
@@ -32,19 +31,21 @@ func expand(min_l: int, max_l: int, flow_variation: int, expansion: int, image: 
 			next_x = posible_list[next_index].x
 			next_y = posible_list[next_index].y
 			next_point = Vector2(next_x, next_y)
-			next_flow = current_node.get_flow() + flow_variation
-			next_path.clear()
+			next_flow = current_node.get_flow() + random_gen.randf_range(- flow_variation / 2.0, flow_variation)
+			var next_path: Array = []
 			cur_x = current_node.position.x
 			cur_y = current_node.position.y
 			cur_point = Vector2(cur_x, cur_y)
+			var rejection_list: Array = []
 			print("next point: ", next_point)
 			while not (cur_x == next_x and cur_y == next_y):
 				#print("current: ", Vector2(cur_x, cur_y))
-				cur_point = get_next_path(cur_point, current_node.position, next_point, next_path, max_l, image)
+				cur_point = get_next_path(cur_point, current_node.position, next_point, next_path, rejection_list, max_l, image)
 				cur_x = cur_point.x
 				cur_y = cur_point.y
-				next_path.append(cur_point)
-			print("river final size: ", next_path.size())
+				if not next_path.has(cur_point):
+					next_path.append(cur_point)
+			#print("river final size: ", next_path.size())
 			next_child = NodeTree.new(next_point, next_flow)
 			current_node.add_child(next_path, next_child)
 			available_nodes.append(next_child)
@@ -65,6 +66,89 @@ func expand(min_l: int, max_l: int, flow_variation: int, expansion: int, image: 
 				print("unable to find new path in iteration ", i)
 				break
 
+func draw(heightImage: Image, image: Image, rng: RandomNumberGenerator):
+	draw_tree(self.head, heightImage, image, rng)
+
+func draw_tree(current_node: NodeTree, heightImage: Image, image: Image, rng: RandomNumberGenerator):
+	print("drawing node: ", current_node.position, " with flux: ", current_node.flow)
+	if current_node.has_left():
+		var mean_flow = (current_node.get_flow() + current_node.son_left.get_flow()) / 2.0
+		create_river_in_nodes(mean_flow, current_node.path_l, heightImage, image, rng)
+		print("created river to: ", current_node.son_left.position, " with flux: ", mean_flow)
+		draw_tree(current_node.son_left, heightImage, image, rng)
+	if current_node.has_right():
+		var mean_flow = (current_node.get_flow() + current_node.son_right.get_flow()) / 2.0
+		create_river_in_nodes(mean_flow, current_node.path_r, heightImage, image, rng)
+		print("created river to: ", current_node.son_right.position, " with flux: ", mean_flow)
+		draw_tree(current_node.son_right, heightImage, image, rng)
+
+func create_river_in_nodes(flow: float, path: Array, heightImage: Image, image: Image, rng: RandomNumberGenerator):
+	#esta variable crece a medida que el río deciende de la montaña
+	var type: float = rng.randf() * 0.1
+	var width: float = flow * (1.0 - type)
+	#var width: float = flow
+	var next_slope: float = 0.05 * flow * type
+	var slope_degradation = flow * type * 0.0001
+	for j in range(path.size() - 1, -1, -1):
+		#si se llega a un punto que ya es un río se detiene el agente, así quedan ríos afluentes
+		var next_direction: Array = [0, 0]
+		if j < path.size() - 1:
+			next_direction[0] = int(path[j].x - path[j + 1].x)
+			next_direction[1] = int(path[j].y - path[j + 1].y)
+		else:
+			next_direction[0] = int(path[j].x - path[j - 1].x)
+			next_direction[1] = int(path[j].y - path[j - 1].y)
+		#se crea el area de río luego se aumenta su ancho a medida que baja de la montaña
+		make_river(path[j], next_direction, int(width), next_slope, heightImage, image)
+		next_slope += rng.randf_range(slope_degradation / 4.0, slope_degradation)
+		width += 0.2 * slope_degradation
+
+#esta función aplana los puntos perpendiculares al punto creando un area hundida
+func make_river(cur_point: Vector2, next_direction: Array, width: int, next_slope: float, heightImage: Image, image: Image):
+	var perpendicular_directions = MathUtils.get_perpendicular_grids(next_direction)
+	var elevation: float = next_slope
+	#se obtiene la altura actual y se asegura que no rebase 1
+	heightImage.lock()
+	var height = heightImage.get_pixel(cur_point.x, cur_point.y).r
+	heightImage.unlock()
+	var next_height: float = height - next_slope
+	#no se peden tener alturas negativas
+	if next_height < 0.0:
+		#print("too low")
+		next_height = 0.0
+	heightImage.lock()
+	heightImage.set_pixel(cur_point.x, cur_point.y, Color(next_height, next_height, next_height, 1))
+	heightImage.unlock()
+	#se marca como río en mapa de biomas
+	MathUtils.paint_river(cur_point.x, cur_point.y, image)
+	for j in width:
+		var left_x = cur_point.x + perpendicular_directions[0][0] * (1 + j)
+		var left_y = cur_point.y + perpendicular_directions[0][1] * (1 + j)
+				
+		var right_x = cur_point.x + perpendicular_directions[1][0] * (1 + j)
+		var right_y = cur_point.y + perpendicular_directions[1][1] * (1 + j)
+		#print("next left: ", left_x, ", ", left_y, "; right: ", right_x, ", ", right_y)
+		#se asegura que las nuevas coordenadas estén dentro del mapa además debe haber elevación o el proceso no tendría sentido
+		if left_x >= 0 and left_x < heightImage.get_width() and left_y >= 0 and left_y < heightImage.get_height():
+			#se pone la nueva altura
+			heightImage.lock()
+			heightImage.set_pixel(left_x, left_y, Color(next_height, next_height, next_height, 1))
+			heightImage.unlock()
+			MathUtils.paint_river(left_x, left_y, image)
+			#se aplana
+			MathUtils.flatten_basic(Vector2(left_x, left_y), heightImage)
+		if right_x >= 0 and right_x < heightImage.get_width() and right_y >= 0 and right_y < heightImage.get_height():
+			#se pone la nueva altura
+			heightImage.lock()
+			heightImage.set_pixel(right_x, right_y, Color(next_height, next_height, next_height, 1))
+			heightImage.unlock()
+			MathUtils.paint_river(right_x, right_y, image)
+			#se aplana
+			MathUtils.flatten_basic(Vector2(right_x, right_y), heightImage)
+	#se aplana la nueva altura
+	MathUtils.flatten_basic(cur_point, heightImage)
+	MathUtils.flatten_around_basic(cur_point, heightImage)
+
 func pick_next_node(slope_map: Array):
 	var counter = 0
 	var min_slope = 2
@@ -83,7 +167,7 @@ func pick_next_node(slope_map: Array):
 				counter = n
 	return self.available_nodes[counter]
 
-func get_next_path(point: Vector2, parent: Vector2, son: Vector2, cur_path: Array, max_l: int, heightImage: Array):
+func get_next_path(point: Vector2, parent: Vector2, son: Vector2, cur_path: Array, reject_l: Array, max_l: int, heightImage: Array):
 	var x = point.x
 	var y = point.y
 	var m_x = son.x
@@ -94,17 +178,25 @@ func get_next_path(point: Vector2, parent: Vector2, son: Vector2, cur_path: Arra
 		var next_x = x + MathUtils.fullNeighbourhood[i].x
 		var next_y = y + MathUtils.fullNeighbourhood[i].y
 		#El vecindario debe quedar dentro de los constraints del mapa
-		if next_x >= 0 and next_x < heightImage.size() and next_y >= 0 and next_y < heightImage[0].size():
+		if next_x >= 0 and next_x < heightImage[0].size() and next_y >= 0 and next_y < heightImage.size():
 			#print("candidate: ", Vector2(next_x, next_y))
 			#el punto siguiente está dentro del area cercana al nodo padre del río
-			if MathUtils.is_point_into_circle(parent.x, parent.y, max_l, next_x, next_y) and not cur_path.has(Vector2(next_x, next_y)) and not(next_x == x and next_y == y):
+			if (MathUtils.is_point_into_circle(son.x, son.y, max_l, next_x, next_y) or MathUtils.is_point_into_circle(parent.x, parent.y, max_l, next_x, next_y)) and not cur_path.has(Vector2(next_x, next_y)) and not reject_l.has(Vector2(next_x, next_y)):
 				var slope_i = heightImage[next_x][next_y]
 				var score = -15000 * slope_i - MathUtils.sqr_dst(next_x, next_y, m_x, m_y)
 				#print("slope: ", slope_i, ", sqr distance: ", MathUtils.sqr_dst(next_x, next_y, m_x, m_y))
 				if score > cur_score:
 					cur_score = score
 					next_point = Vector2(next_x, next_y)
-			
+	#en caso que no se pueda tomar un punto nuevo, se retrocede y se marca el punto tomado para que no se pueda volver a usar
+	if next_point == point:
+		#print("no hay candidatos")
+		reject_l.append(point)
+		if cur_path.has(point):
+			cur_path.erase(point)
+		#se toma el punto anterior como punto actual
+		next_point = cur_path[cur_path.size() - 1]
+		print("no candidates with current: ",  point, " and next: ", next_point)
 	return next_point
 
 func is_point_too_close(x: int, y: int, min_l: int):

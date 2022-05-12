@@ -1,7 +1,7 @@
 class_name NodeTree
 
 var position: Vector2
-var type: int
+#var type: int
 var flow
 var son_left: NodeTree
 var path_l: Array = []
@@ -10,7 +10,7 @@ var path_r: Array = []
 
 func _init(pos: Vector2, f = 0, t: int = 0):
 	position = pos
-	type = t
+	#type = t
 	flow = f
 	
 func get_priority():
@@ -21,6 +21,12 @@ func get_priority():
 	if has_right():
 		size_r += son_right.get_priority()
 	return max(size_l, size_r)
+
+func draw():
+	if has_left():
+		var mean_flow = self.get_flow() + son_left.get_flow()
+	if has_right():
+		var mean_flow = self.get_flow() + son_right.get_flow()
 
 func get_flow():
 	return flow

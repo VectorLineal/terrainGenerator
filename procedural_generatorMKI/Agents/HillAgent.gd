@@ -67,7 +67,7 @@ func act(perception):
 			heightImage.lock()
 			heightImage.set_pixel(self.seed_point.x, self.seed_point.y, Color(next_height, next_height, next_height, 1))
 			heightImage.unlock()
-			fix_dynamic_list(self.seed_point, dynamic_list, next_height, sea)
+			MathUtils.fix_dynamic_list(self.seed_point, dynamic_list, next_height, sea)
 			
 			#se eleva perpendicularmente al punto
 			for j in self.width:
@@ -91,7 +91,7 @@ func act(perception):
 						heightImage.lock()
 						heightImage.set_pixel(left_x, left_y, Color(next_height, next_height, next_height, 1))
 						heightImage.unlock()
-						fix_dynamic_list(Vector2(left_x, left_y), dynamic_list, next_height, sea)
+						MathUtils.fix_dynamic_list(Vector2(left_x, left_y), dynamic_list, next_height, sea)
 				if right_x >= 0 and right_x < heightImage.get_width() and right_y >= 0 and right_y < heightImage.get_height() && elevation_right > 0:
 					heightImage.lock()
 					var height_right = heightImage.get_pixel(right_x, right_y).r
@@ -104,7 +104,7 @@ func act(perception):
 						heightImage.lock()
 						heightImage.set_pixel(right_x, right_y, Color(next_height, next_height, next_height, 1))
 						heightImage.unlock()
-						fix_dynamic_list(Vector2(right_x, right_y), dynamic_list, next_height, sea)
+						MathUtils.fix_dynamic_list(Vector2(right_x, right_y), dynamic_list, next_height, sea)
 		
 			#se mueve el siguiente punto a la dirección de la montaña
 			var next_point = Vector2(self.seed_point.x + next_direction[0], self.seed_point.y + next_direction[1])
@@ -124,16 +124,6 @@ func act(perception):
 							k = 8
 			#ahora el punto correspondiente en la dirección del agente
 			self.seed_point = next_point
-
-#para mantener el programa óptimo, si la nueva altura es menor al nivel del mar, se elimina de la lista, si era menor y se vuelve mayor, se añade
-func fix_dynamic_list(point: Vector2, dynamic_list: Array, height: float, sea: float):
-	var index = MathUtils.get_element_index(point, dynamic_list)
-	if index >= 0:
-		if height <= sea:
-			dynamic_list.remove(index)
-	else:
-		if height > sea:
-			dynamic_list.append(point)
 
 #función que calcula un punto aleatorio que esté encima de un nivel del mar usando programación dinámica
 func getRandomLandPointDynamic(list: Array, sea_level: float, heightImage: Image, random_gen: RandomNumberGenerator):

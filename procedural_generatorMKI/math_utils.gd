@@ -231,7 +231,7 @@ static func generate_vectorial_fractal_field(width: int, height: int, rng: Rando
 				row.append(Vector2(cur_x, cur_y))
 		field.append(row)
 	return field
-
+#funciones que apoyan a los agentes
 #pinta el punto en el mapa de bioma como río
 static func paint_river(x: float, y: float, image: Image):
 	image.lock()
@@ -242,6 +242,7 @@ static func paint_river(x: float, y: float, image: Image):
 	image.lock()
 	image.set_pixel(x, y, color)
 	image.unlock()
+	#print("painted: ", Vector2(x, y))
 
 static func is_river(x: float, y: float, image: Image):
 	image.lock()
@@ -252,6 +253,80 @@ static func is_river(x: float, y: float, image: Image):
 		return true
 	else:
 		return false
+
+#ajusta lista dinámica de puntos encima del nivel del mar
+static func fix_dynamic_list(point: Vector2, dynamic_list: Array, height: float, sea: float):
+	var index = get_element_index(point, dynamic_list)
+	if index >= 0:
+		if height <= sea:
+			dynamic_list.remove(index)
+	else:
+		if height > sea:
+			dynamic_list.append(point)
+
+#aplana el area al rededor de un punto que se usa en un árbol de ríos
+static func flatten_basic(point: Vector2, heightImage: Image):
+	if point.x < 0 || point.y < 0:
+		print("fatal error at point:", point)
+	heightImage.lock()
+	var height = heightImage.get_pixel(point.x, point.y).r
+	heightImage.unlock()
+	var amount = 3 * height
+	var counter = 3.0
+	var visited_neighbours: Array = []
+			
+	for j in fullNeighbourhood.size():
+		var next_x = point.x + fullNeighbourhood[j].x
+		var next_y = point.y + fullNeighbourhood[j].y
+		#El vecindario debe quedar dentro de los constraints del mapa de alturas
+		if next_x >= 0 and next_x < heightImage.get_width() and next_y >= 0 and next_y < heightImage.get_height():
+			heightImage.lock()
+			var height_i = heightImage.get_pixel(next_x, next_y).r
+			heightImage.unlock()
+			amount += height_i
+			counter += 1.0
+			visited_neighbours.append(Vector2(next_x, next_y))
+	height = amount / counter
+	if height > 1:
+		height = 1
+	heightImage.lock()
+	heightImage.set_pixel(point.x, point.y, Color(height, height, height, 1))
+	heightImage.unlock()
+	#retorna los puntos visitados para obtener un nuevo punto que visitar al asar
+	return visited_neighbours
+
+#funcíon que aplana el vecindario de dado puntp
+static func flatten_around_basic(point: Vector2, heightImage: Image):
+	var x = point.x
+	var y = point.y
+	for i in fullNeighbourhood.size():
+		var next_x = x + fullNeighbourhood[i].x
+		var next_y = y + fullNeighbourhood[i].y
+		#El vecindario debe quedar dentro de los constraints del mapa de alturas
+		if next_x >= 0 and next_x < heightImage.get_width() and next_y >= 0 and next_y < heightImage.get_height():
+			flatten_basic(Vector2(next_x, next_y), heightImage)
+
+#aplana el area al rededor de un punto
+static func flatten(point: Vector2, sea: float, heightImage: Image, dynamic_list: Array):
+	var visited_neighbours: Array = flatten_basic(point, heightImage)
+	heightImage.lock()
+	var height = heightImage.get_pixel(point.x, point.y).r
+	heightImage.unlock()
+	#para mantener el programa óptimo, si la nueva altura es menor al nivel del mar, se elimina de la lista, si era menor y se vuelve mayor, se añade
+	fix_dynamic_list(point, dynamic_list, height, sea)
+	#retorna los puntos visitados para obtener un nuevo punto que visitar al asar
+	return visited_neighbours
+
+#funcíon que aplana el vecindario de dado puntp
+static func flatten_around(point: Vector2, list: Array, sea_level: float, heightImage: Image):
+	var x = point.x
+	var y = point.y
+	for i in fullNeighbourhood.size():
+		var next_x = x + fullNeighbourhood[i].x
+		var next_y = y + fullNeighbourhood[i].y
+		#El vecindario debe quedar dentro de los constraints del mapa de alturas
+		if next_x >= 0 and next_x < heightImage.get_width() and next_y >= 0 and next_y < heightImage.get_height():
+			flatten(Vector2(next_x, next_y), sea_level, heightImage, list)
 
 static func create_floating_matrix(width: int, height: int, value: float = 0):
 	var matrix=[]

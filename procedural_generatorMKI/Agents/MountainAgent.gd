@@ -146,4 +146,4 @@ func flatten(point: Vector2, sea: float, heightImage: Image, dynamic_list: Array
 	heightImage.unlock()
 			
 	#para mantener el programa óptimo, si la nueva altura es menor al nivel del mar, se elimina de la lista, si era menor y se vuelve mayor, se añade
-	fix_dynamic_list(point, dynamic_list, height, sea)
+	MathUtils.fix_dynamic_list(point, dynamic_list, height, sea)

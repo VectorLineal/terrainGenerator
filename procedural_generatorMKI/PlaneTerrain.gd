@@ -33,10 +33,10 @@ var initial_river_amount: int = 4
 var max_river_expansion: int = 8
 var river_min_dist: int = 200
 var river_max_dist: int = 300
-var river_flow_variation: int = 2
+var river_flow_variation: float = 2
 
 #variables sobre agentes
-var use_agents = false
+var use_agents = true
 var detail = 9
 var landmass = 0.3
 var smooth_tokens = 750
@@ -117,8 +117,9 @@ func _ready():
 		agent_manager.start_river_agents(600, 200, 0.025, 0.4, 0.0002, 0.06, self.seaLevel, heightImage, image, rng)
 	
 	#técnica de generación de ríos por hidrología
-	var river_tree = RiverTree.new(Vector2(110, 0), 5)
+	var river_tree = RiverTree.new(Vector2(110, 0), 8)
 	river_tree.expand(river_min_dist, river_max_dist, river_flow_variation, max_river_expansion, MathUtils.get_slope_map(heightImage), rng)
+	river_tree.draw(heightImage, image, rng)
 	
 	#se suaviza todo el mapa para hacerlo menos caótico
 	TerrainRefinement.smooth_map(heightImage)

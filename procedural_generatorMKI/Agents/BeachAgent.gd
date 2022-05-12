@@ -182,14 +182,4 @@ func smooth(point: Vector2, sea: float, heightImage: Image, dynamic_list: Array)
 	heightImage.unlock()
 			
 	#para mantener el programa óptimo, si la nueva altura es menor al nivel del mar, se elimina de la lista, si era menor y se vuelve mayor, se añade
-	fix_dynamic_list(point, dynamic_list, height, sea)
-
-#para mantener el programa óptimo, si la nueva altura es menor al nivel del mar, se elimina de la lista, si era menor y se vuelve mayor, se añade
-func fix_dynamic_list(point: Vector2, dynamic_list: Array, height: float, sea: float):
-	var index = MathUtils.get_element_index(point, dynamic_list)
-	if index >= 0:
-		if height <= sea:
-			dynamic_list.remove(index)
-	else:
-		if height > sea:
-			dynamic_list.append(point)
+	MathUtils.fix_dynamic_list(point, dynamic_list, height, sea)
